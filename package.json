@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "./api"
+    ]
+  },
+  "dependencies": {
+    "got": "^14.4.2"
+  }
+}

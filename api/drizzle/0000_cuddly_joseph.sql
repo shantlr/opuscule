@@ -1,0 +1,60 @@
+CREATE TABLE `books` (
+	`id` text PRIMARY KEY NOT NULL,
+	`title` text NOT NULL,
+	`description` text,
+	`cover_url` text,
+	`created_at` integer,
+	`updated_at` integer
+);
+--> statement-breakpoint
+CREATE TABLE `chapters` (
+	`id` text PRIMARY KEY NOT NULL,
+	`chapter_id` text NOT NULL,
+	`chapter_rank` real NOT NULL,
+	`source_id` text NOT NULL,
+	`source_book_id` text NOT NULL,
+	`pages` text,
+	`published_at` integer,
+	`created_at` integer,
+	FOREIGN KEY (`source_id`,`source_book_id`) REFERENCES `source_books`(`source_id`,`source_book_id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE `fetch_sessions` (
+	`key` text PRIMARY KEY NOT NULL,
+	`user_agent` text NOT NULL,
+	`cookies` text NOT NULL,
+	`created_at` integer NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `global_settings` (
+	`key` text PRIMARY KEY NOT NULL,
+	`fetch_latests_min_delay_ms` integer DEFAULT 10800000 NOT NULL,
+	`fetch_latests_interval_ms` integer DEFAULT 1800000
+);
+--> statement-breakpoint
+CREATE TABLE `html_caches` (
+	`key` text PRIMARY KEY NOT NULL,
+	`data` text,
+	`status` integer,
+	`created_at` integer
+);
+--> statement-breakpoint
+CREATE TABLE `sources` (
+	`id` text PRIMARY KEY NOT NULL,
+	`last_fetch` integer
+);
+--> statement-breakpoint
+CREATE TABLE `source_books` (
+	`source_id` text NOT NULL,
+	`source_book_id` text NOT NULL,
+	`book_id` text,
+	`title` text NOT NULL,
+	`title_accuracy` integer,
+	`description` text,
+	`description_accuracy` integer,
+	`cover_url` text,
+	`cover_origin_url` text,
+	PRIMARY KEY(`source_id`, `source_book_id`),
+	FOREIGN KEY (`source_id`) REFERENCES `sources`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`book_id`) REFERENCES `books`(`id`) ON UPDATE no action ON DELETE no action
+);
