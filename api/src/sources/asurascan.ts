@@ -3,6 +3,7 @@ import { ISource } from './types';
 import { joinUrl } from 'lib/utils/join-url';
 import { parseFormattedRelativeDate } from 'lib/utils/parse-relative-date';
 import { parseFullFormattedDate } from 'lib/utils/parse-formatted-date';
+import { ACCURACY } from 'config/constants';
 
 export const sourceAsuraScan = {
   id: 'asurascan',
@@ -175,6 +176,8 @@ export const sourceAsuraScan = {
           })
           .parse({
             ...res,
+            titleAccuracy: ACCURACY.HIGH,
+            descriptionAccuracy: ACCURACY.HIGH,
             chapters: res.chapters.map((chapt) => ({
               ...chapt,
               id: chapt.url.match(/\/chapter\/(?<id>[^/]+)/)?.groups?.id,

@@ -5,6 +5,7 @@ import {
   real,
   sqliteTable,
   text,
+  unique,
 } from 'drizzle-orm/sqlite-core';
 import { nanoid } from 'nanoid';
 
@@ -90,6 +91,10 @@ export const Chapter = sqliteTable(
       foreignColumns: [SourceBook.source_id, SourceBook.source_book_id],
       name: 'source_book_ref',
     }),
+    uniq: unique('unique_source_chapter').on(
+      table.source_book_id,
+      table.chapter_id,
+    ),
   }),
 );
 

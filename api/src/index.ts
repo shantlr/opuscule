@@ -2,6 +2,7 @@ import express from 'express';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import { db } from './data/db';
 import path from 'path';
+import cors from 'cors';
 import { checkGlobalSettings } from './lib/global-settings';
 import { setupCronJobs } from './lib/cron-jobs';
 import { router } from 'router';
@@ -14,13 +15,19 @@ const main = async () => {
   await migrate(db, {
     migrationsFolder: path.resolve(__dirname, '../drizzle'),
   });
+  console.log('DB migrated');
 
   await checkGlobalSettings();
   await setupCronJobs();
 
   const app = express();
 
-  app.use(bodyParser.json());
+  app.use(
+    cors({
+      origin: config.get('api.cors.origin'),
+    }),
+    bodyParser.json(),
+  );
   app.use(router);
 
   app.listen(config.get('service.port'), () => {

@@ -6,7 +6,7 @@ import { joinUrl } from 'lib/utils/join-url';
 import { HtmlCacheRepo } from 'data/repo/html-cache';
 import { execOperations } from 'sources/exec-op';
 import { SourceRepo } from 'data/repo/source';
-import { keyBy, uniq } from 'lodash';
+import { keyBy, sortBy, uniq } from 'lodash';
 import { FetchPictureJob, fetchPictures } from './fetch-pictures';
 import { Sources } from 'sources';
 
@@ -163,17 +163,17 @@ export const createContext = ({
 
         // Upsert chapters
         {
-          for (const book of items) {
-            if (!book.chapters?.length) {
+          for (const sourceBook of items) {
+            if (!sourceBook.chapters?.length) {
               continue;
             }
 
-            const { chapters } = book;
+            const { chapters } = sourceBook;
             const existingChapters =
               await SourceRepo.chapters.get.listByNumbers({
                 sourceId,
-                sourceBookId: book.id,
-                chapterIds: book.chapters.map((i) => i.id),
+                sourceBookId: sourceBook.id,
+                chapterIds: sourceBook.chapters.map((i) => i.id),
               });
             const existingByNumber = keyBy(
               existingChapters,
@@ -183,13 +183,20 @@ export const createContext = ({
 
             await SourceRepo.chapters.creates({
               sourceId,
-              sourceBookId: book.id,
+              sourceBookId: sourceBook.id,
               chapters: toCreate,
             });
+
+            const sorted = sortBy(toCreate, (c) => c.rank);
+            const msg =
+              sorted.length === 0
+                ? `no new chapters`
+                : sorted.length > 1
+                  ? `chapter ${sorted[0].id} created`
+                  : `chapters ${sorted[0].id}..${sorted.at(-1)?.id} created`;
+
             if (toCreate.length) {
-              console.log(
-                `[book-upsert] ${sourceId}/${book.id} ${toCreate.length} chapters created`,
-              );
+              console.log(`[book-upsert] ${sourceId}/${sourceBook.id} ${msg}`);
             }
           }
         }

@@ -9,18 +9,25 @@ import { GlobalSettingsRepo } from './global-settings.js';
 
 export const SourceRepo = {
   get: {
-    sourceToFetchLatests: async () => {
+    sourceToFetchLatests: async (opt?: { force?: boolean }) => {
       const globalSettings = (await GlobalSettingsRepo.get())!;
-      const sources = db.query.Source.findMany({
-        where: or(
-          isNull(Source.last_fetched_latests_at),
-          lte(
-            Source.last_fetched_latests_at,
-            new Date(Date.now() - globalSettings.fetch_latests_min_delay_ms),
-          ),
-        ),
-      });
+      const sources = !opt?.force
+        ? await db.query.Source.findMany({
+            where: or(
+              isNull(Source.last_fetched_latests_at),
+              lte(
+                Source.last_fetched_latests_at,
+                new Date(
+                  Date.now() - globalSettings.fetch_latests_min_delay_ms,
+                ),
+              ),
+            ),
+          })
+        : db.query.Source.findMany({});
       return sources;
+    },
+    listSubscribed: async () => {
+      return db.query.Source.findMany({});
     },
   },
 
@@ -278,7 +285,7 @@ export const SourceRepo = {
       listByNumbers: ({
         sourceId,
         sourceBookId,
-        chapterIds: chapterNumbers,
+        chapterIds,
       }: {
         sourceId: string;
         sourceBookId: string;
@@ -288,7 +295,7 @@ export const SourceRepo = {
           where: and(
             eq(Chapter.source_id, sourceId),
             eq(Chapter.source_book_id, sourceBookId),
-            inArray(Chapter.chapter_id, chapterNumbers),
+            inArray(Chapter.chapter_id, chapterIds),
           ),
         });
       },

@@ -6,12 +6,15 @@ import { z } from 'zod';
 
 export const router = Router();
 
-router.get('/sources/available', (req, res) => {
+router.get('/sources', async (req, res) => {
+  const subscribedSources = await SourceRepo.get.listSubscribed();
+
   return res.status(200).send(
     Sources.map((s) => ({
       id: s.id,
       name: s.name,
       url: s.url,
+      subscribed: subscribedSources.some((ss) => ss.id === s.id),
     })),
   );
 });
@@ -52,17 +55,17 @@ router.post('/sources/subscribe', async (req, res) => {
   }
 });
 
-// router.delete('/sources/:id/subscribe', async (req, res) => {
-//   const { id } = req.params;
-//   try {
-//     await SourceRepo.unsubscribe(id);
-//     return res.status(200).send({
-//       success: true,
-//     });
-//   } catch (err) {
-//     console.log(err);
-//     return res.status(500).send({
-//       success: false,
-//     });
-//   }
-// });
+router.delete('/sources/:id/subscribe', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await SourceRepo.updates.unsubscribe(id);
+    return res.status(200).send({
+      success: true,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({
+      success: false,
+    });
+  }
+});

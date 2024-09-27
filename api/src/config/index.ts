@@ -32,4 +32,13 @@ export const config = convict({
       },
     },
   },
+
+  api: {
+    cors: {
+      origin: {
+        env: 'API_CORS_ORIGIN',
+        default: 'http://localhost:5173',
+      },
+    },
+  },
 });
