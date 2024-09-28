@@ -99,8 +99,6 @@ export const sourceAsuraScan = {
           })),
         );
 
-      console.log('PARSEDDD', JSON.stringify(parsedItems, null, 2));
-
       await context.books.upsert(parsedItems);
     },
     book: {
@@ -118,7 +116,7 @@ export const sourceAsuraScan = {
             //   type: 'text',
             //   query: ''
             // },
-            cover_url: {
+            coverUrl: {
               type: 'attr',
               query: 'img[alt="poster"]',
               name: 'src',
@@ -151,7 +149,7 @@ export const sourceAsuraScan = {
                   query: 'h3 > a',
                   name: 'href',
                 },
-                published_at: {
+                publishedAt: {
                   type: 'text',
                   query: 'h3.text-xs',
                 },
@@ -163,7 +161,7 @@ export const sourceAsuraScan = {
         const parsedBook = z
           .object({
             title: z.string(),
-            cover_url: z.string(),
+            coverUrl: z.string(),
             // rating: z.string(),
             // status: z.string(),
             description: z.string(),
@@ -173,7 +171,7 @@ export const sourceAsuraScan = {
                 rank: z.number(),
                 title: z.string(),
                 url: z.string(),
-                published_at: z
+                publishedAt: z
                   .string()
                   .transform((d) => parseFullFormattedDate(d)),
               })

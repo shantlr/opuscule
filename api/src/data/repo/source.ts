@@ -88,6 +88,14 @@ export const SourceRepo = {
           ),
         });
       },
+      subscribedSourceOfBook: async (bookId: string) => {
+        return db.query.SourceBook.findMany({
+          where: and(eq(SourceBook.book_id, bookId)),
+          with: {
+            source: true,
+          },
+        });
+      },
     },
 
     update: {

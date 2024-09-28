@@ -13,7 +13,10 @@ export const fetchSourceLatests = async (source: ISource) => {
   await source.entries.fetchLatests(context);
 };
 
-export const fetchBook = async (source: ISource, sourceBookId: string) => {
+export const fetchBookDetails = async (
+  source: ISource,
+  sourceBookId: string,
+) => {
   const context = createContext({ sourceId: source.id });
 
   await source.entries.book.details({ sourceBookId }, context);

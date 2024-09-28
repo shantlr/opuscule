@@ -4,6 +4,7 @@ import { Sources, fetchSourceLatests } from '../sources';
 import { SourceRepo } from '../data/repo/source';
 import { z } from 'zod';
 import { BookRepo } from 'data/repo/books-repo';
+import { fetchBook } from 'lib/cron-jobs/fetch-book';
 
 export const router = Router();
 
@@ -80,7 +81,19 @@ router.get('/books', async (req, res) => {
   });
 });
 router.get('/books/:id', async (req, res) => {
-  const book = await BookRepo.get.byId(req.params.id);
+  const book = await BookRepo.get.byIdWithChapters(req.params.id);
+  if (!book) {
+    return res.status(404).send();
+  }
+
+  // if details never fetched, fetch it
+  if (!book.last_detail_updated_at) {
+    await fetchBook(book.id);
+    const updated = await BookRepo.get.byIdWithChapters(book.id);
+    return res.status(200).send({
+      book: updated,
+    });
+  }
 
   return res.status(200).send({
     book,

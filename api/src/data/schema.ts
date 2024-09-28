@@ -9,6 +9,7 @@ import {
 } from 'drizzle-orm/sqlite-core';
 import { nanoid } from 'nanoid';
 import { Cookie } from './types';
+import { relations } from 'drizzle-orm';
 
 export const GlobalSettings = sqliteTable('global_settings', {
   id: text('key', {
@@ -150,6 +151,39 @@ export const SourceBook = sqliteTable(
     }),
   }),
 );
+
+export const sourceRelations = relations(Source, (rel) => ({
+  sourceBooks: rel.many(SourceBook, {
+    relationName: 'soure',
+  }),
+}));
+export const sourceBookRelations = relations(SourceBook, (rel) => ({
+  source: rel.one(Source, {
+    relationName: 'source',
+    fields: [SourceBook.source_id],
+    references: [Source.id],
+  }),
+  book: rel.one(Book, {
+    relationName: 'book',
+    fields: [SourceBook.book_id],
+    references: [Book.id],
+  }),
+  chapters: rel.many(Chapter, {
+    relationName: 'sourceBook',
+  }),
+}));
+export const bookRelations = relations(Book, (rel) => ({
+  sourceBooks: rel.many(SourceBook, {
+    relationName: 'book',
+  }),
+}));
+export const chapterRelations = relations(Chapter, (rel) => ({
+  sourceBook: rel.one(SourceBook, {
+    relationName: 'sourceBook',
+    fields: [Chapter.source_book_id],
+    references: [SourceBook.source_book_id],
+  }),
+}));
 
 // export const UserSource = sqliteTable('user_sources', {
 //   id: text('id').primaryKey(),
