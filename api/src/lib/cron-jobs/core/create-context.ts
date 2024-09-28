@@ -86,9 +86,12 @@ export const createFetcherSession = async (
       // start new session
       console.log(`[fetcher-session] starting new session for '${url}'`);
       const flareRes = await startSession({ url });
-      currentFetchSession = await FetchSessionRepo.create(url, {
+      currentFetchSession = await FetchSessionRepo.create({
         key: sessionId,
-        cookies: flareRes.solution.cookies,
+        cookies: flareRes.solution.cookies.map((c) => ({
+          ...c,
+          url,
+        })),
         user_agent: flareRes.solution.userAgent,
       });
       await HtmlCacheRepo.create(

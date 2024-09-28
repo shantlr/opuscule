@@ -21,7 +21,7 @@ const main = async () => {
   await checkGlobalSettings();
   await setupCronJobs();
 
-  // await fetchLatests({ force: true });
+  await fetchLatests({ force: true });
 
   const app = express();
 

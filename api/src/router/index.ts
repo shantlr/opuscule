@@ -79,3 +79,10 @@ router.get('/books', async (req, res) => {
     books,
   });
 });
+router.get('/books/:id', async (req, res) => {
+  const book = await BookRepo.get.byId(req.params.id);
+
+  return res.status(200).send({
+    book,
+  });
+});

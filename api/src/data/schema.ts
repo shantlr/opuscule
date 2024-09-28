@@ -8,8 +8,7 @@ import {
   unique,
 } from 'drizzle-orm/sqlite-core';
 import { nanoid } from 'nanoid';
-
-import { Cookie } from '../lib/flare-solverr/index.js';
+import { Cookie } from './types';
 
 export const GlobalSettings = sqliteTable('global_settings', {
   id: text('key', {
@@ -59,6 +58,9 @@ export const Book = sqliteTable('books', {
   cover_url: text('cover_url'),
 
   last_chapter_updated_at: integer('last_chapter_updated_at', {
+    mode: 'timestamp_ms',
+  }),
+  last_detail_updated_at: integer('last_detail_updated_at', {
     mode: 'timestamp_ms',
   }),
 
@@ -126,6 +128,9 @@ export const SourceBook = sqliteTable(
     book_id: text('book_id').references(() => Book.id),
 
     last_chapter_updated_at: integer('last_chapter_updated_at', {
+      mode: 'timestamp_ms',
+    }),
+    last_fetched_details_at: integer('last_fetched_details_at', {
       mode: 'timestamp_ms',
     }),
 

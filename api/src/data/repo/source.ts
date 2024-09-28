@@ -310,7 +310,8 @@ export const SourceRepo = {
       chapters: {
         id: string;
         rank: number;
-        published_at?: Date | null;
+        publishedAt?: Date | null;
+        publishedAtAccuracy?: number;
       }[];
     }) => {
       if (!chapters.length) {
@@ -324,52 +325,57 @@ export const SourceRepo = {
             chapter_id: c.id,
             chapter_rank: c.rank,
             source_book_id: sourceBookId,
-            published_at: c.published_at,
+            published_at: c.publishedAt,
+            publishedAtAccuracy: c.publishedAtAccuracy ?? ACCURACY.LOW,
           })),
         );
 
         // Update last chapter updated at
-        const sourceBook = await t.query.SourceBook.findFirst({
-          where: and(
-            eq(SourceBook.source_book_id, sourceBookId),
-            eq(SourceBook.source_id, sourceId),
-          ),
-        });
         const lastPublished = maxBy(chapters, (c) =>
-          (c.published_at ?? new Date())?.valueOf(),
+          (c.publishedAt ?? new Date())?.valueOf(),
         );
 
-        const lastPublishedAt = lastPublished?.published_at || new Date();
+        const lastPublishedAt = lastPublished?.publishedAt || new Date();
 
-        if (lastPublishedAt) {
-          const [updated] = await t
-            .update(SourceBook)
+        const [updatedSourceBook] = await t
+          .update(SourceBook)
+          .set({
+            last_chapter_updated_at: lastPublishedAt,
+          })
+          .where(
+            and(
+              eq(SourceBook.source_book_id, sourceBookId),
+              eq(SourceBook.source_id, sourceId),
+              or(
+                lt(SourceBook.last_chapter_updated_at, lastPublishedAt),
+                isNull(SourceBook.last_chapter_updated_at),
+              ),
+            ),
+          )
+          .returning();
+
+        if (
+          updatedSourceBook?.last_chapter_updated_at &&
+          updatedSourceBook.book_id
+        ) {
+          await t
+            .update(Book)
             .set({
-              last_chapter_updated_at: lastPublishedAt,
+              last_chapter_updated_at:
+                updatedSourceBook.last_chapter_updated_at,
             })
             .where(
               and(
-                eq(SourceBook.source_book_id, sourceBookId),
-                eq(SourceBook.source_id, sourceId),
-                lt(SourceBook.last_chapter_updated_at, lastPublishedAt),
-              ),
-            )
-            .returning();
-          if (updated?.last_chapter_updated_at && sourceBook?.book_id) {
-            t.update(Book)
-              .set({
-                last_chapter_updated_at: updated.last_chapter_updated_at,
-              })
-              .where(
-                and(
-                  eq(Book.id, sourceBook.book_id),
+                eq(Book.id, updatedSourceBook.book_id),
+                or(
                   lt(
                     Book.last_chapter_updated_at,
-                    updated.last_chapter_updated_at,
+                    updatedSourceBook.last_chapter_updated_at,
                   ),
+                  isNull(Book.last_chapter_updated_at),
                 ),
-              );
-          }
+              ),
+            );
         }
       });
     },

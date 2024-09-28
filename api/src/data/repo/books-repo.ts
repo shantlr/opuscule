@@ -1,9 +1,14 @@
 import { db } from 'data/db';
 import { Book } from 'data/schema';
-import { desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 
 export const BookRepo = {
   get: {
+    byId: async (id: string) => {
+      return await db.query.Book.findFirst({
+        where: eq(Book.id, id),
+      });
+    },
     latestUpdateds: async () => {
       return await db.query.Book.findMany({
         orderBy: [desc(Book.last_chapter_updated_at)],
