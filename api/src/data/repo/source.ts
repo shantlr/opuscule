@@ -1,8 +1,8 @@
-import { and, eq, inArray, isNull, lte, or } from 'drizzle-orm';
+import { and, eq, inArray, isNull, lt, lte, or } from 'drizzle-orm';
 import { db } from '../db.js';
 import { Book, Chapter, Source, SourceBook } from '../schema.js';
 import { Sources } from '../../sources/index.js';
-import { partition } from 'lodash';
+import { maxBy, partition } from 'lodash';
 import { BookRepo } from './books-repo.js';
 import { ACCURACY } from 'config/constants.js';
 import { GlobalSettingsRepo } from './global-settings.js';
@@ -317,15 +317,61 @@ export const SourceRepo = {
         return;
       }
 
-      await db.insert(Chapter).values(
-        chapters.map((c) => ({
-          source_id: sourceId,
-          chapter_id: c.id,
-          chapter_rank: c.rank,
-          source_book_id: sourceBookId,
-          published_at: c.published_at,
-        })),
-      );
+      await db.transaction(async (t) => {
+        await t.insert(Chapter).values(
+          chapters.map((c) => ({
+            source_id: sourceId,
+            chapter_id: c.id,
+            chapter_rank: c.rank,
+            source_book_id: sourceBookId,
+            published_at: c.published_at,
+          })),
+        );
+
+        // Update last chapter updated at
+        const sourceBook = await t.query.SourceBook.findFirst({
+          where: and(
+            eq(SourceBook.source_book_id, sourceBookId),
+            eq(SourceBook.source_id, sourceId),
+          ),
+        });
+        const lastPublished = maxBy(chapters, (c) =>
+          (c.published_at ?? new Date())?.valueOf(),
+        );
+
+        const lastPublishedAt = lastPublished?.published_at || new Date();
+
+        if (lastPublishedAt) {
+          const [updated] = await t
+            .update(SourceBook)
+            .set({
+              last_chapter_updated_at: lastPublishedAt,
+            })
+            .where(
+              and(
+                eq(SourceBook.source_book_id, sourceBookId),
+                eq(SourceBook.source_id, sourceId),
+                lt(SourceBook.last_chapter_updated_at, lastPublishedAt),
+              ),
+            )
+            .returning();
+          if (updated?.last_chapter_updated_at && sourceBook?.book_id) {
+            t.update(Book)
+              .set({
+                last_chapter_updated_at: updated.last_chapter_updated_at,
+              })
+              .where(
+                and(
+                  eq(Book.id, sourceBook.book_id),
+                  lt(
+                    Book.last_chapter_updated_at,
+                    updated.last_chapter_updated_at,
+                  ),
+                ),
+              );
+          }
+        }
+      });
     },
   },
 };

@@ -1,6 +1,6 @@
 import got from 'got';
 
-export type Cookie = {
+export type FlareSolverrCookie = {
   domain?: string;
   expiry?: number;
   httpOnly?: boolean;
@@ -18,7 +18,7 @@ export const startSession = async ({ url }: { url: string }) => {
       status: number;
       response: string;
       url: string;
-      cookies: Cookie[];
+      cookies: FlareSolverrCookie[];
       userAgent: string;
       headers: Record<string, string>;
       startTimestamp: number;

@@ -58,6 +58,10 @@ export const Book = sqliteTable('books', {
   description: text('description'),
   cover_url: text('cover_url'),
 
+  last_chapter_updated_at: integer('last_chapter_updated_at', {
+    mode: 'timestamp_ms',
+  }),
+
   created_at: integer('created_at', { mode: 'timestamp_ms' }).$defaultFn(
     () => new Date(),
   ),
@@ -120,6 +124,10 @@ export const SourceBook = sqliteTable(
       .references(() => Source.id),
     source_book_id: text('source_book_id').notNull(),
     book_id: text('book_id').references(() => Book.id),
+
+    last_chapter_updated_at: integer('last_chapter_updated_at', {
+      mode: 'timestamp_ms',
+    }),
 
     title: text('title').notNull(),
     title_accuracy: integer('title_accuracy'),

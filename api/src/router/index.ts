@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { Sources, fetchSourceLatests } from '../sources';
 import { SourceRepo } from '../data/repo/source';
 import { z } from 'zod';
+import { BookRepo } from 'data/repo/books-repo';
 
 export const router = Router();
 
@@ -68,4 +69,13 @@ router.delete('/sources/:id/subscribe', async (req, res) => {
       success: false,
     });
   }
+});
+
+router.get('/books', async (req, res) => {
+  const {} = z.object({}).parse(req.body);
+
+  const books = await BookRepo.get.latestUpdateds();
+  return res.status(200).send({
+    books,
+  });
 });

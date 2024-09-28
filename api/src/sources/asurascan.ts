@@ -26,9 +26,12 @@ export const sourceAsuraScan = {
             name: 'href',
             query: `div.h-32.relative > a`,
           },
-          cover_url: {
+          coverUrl: {
             type: 'attr',
             query: 'a > img.object-cover',
+            // query: {
+            //   or: ['a > img.object-cover', 'a > img[alt="poster"]'],
+            // },
             name: 'src',
           },
           title: {
@@ -43,7 +46,7 @@ export const sourceAsuraScan = {
                 type: 'text',
                 query: 'a',
               },
-              published_at: {
+              publishedAt: {
                 type: 'text',
                 query: 'p',
               },
@@ -61,13 +64,13 @@ export const sourceAsuraScan = {
         .object({
           id: z.string(),
           url: z.string().transform((url) => joinUrl(sourceAsuraScan.url, url)),
-          cover_url: z
+          coverUrl: z
             .string()
             .transform((url) => joinUrl(sourceAsuraScan.url, url)),
           title: z.string().transform((t) => t.trim()),
           chapters: z
             .object({
-              published_at: z
+              publishedAt: z
                 .string()
                 .transform((d) => parseFormattedRelativeDate(d)),
               id: z.string(),
@@ -91,10 +94,12 @@ export const sourceAsuraScan = {
                 chapt.url.match(/\/chapter\/(?<chapter>[^/]+)/)?.groups
                   ?.chapter as string,
               ),
-              published_at: chapt.published_at,
+              publishedAt: chapt.publishedAt,
             })),
           })),
         );
+
+      console.log('PARSEDDD', JSON.stringify(parsedItems, null, 2));
 
       await context.books.upsert(parsedItems);
     },

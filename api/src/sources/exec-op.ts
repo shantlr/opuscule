@@ -21,7 +21,17 @@ const getElem = (
     return $(selector);
   }
 
-  return $(context);
+  let currentContext = context;
+  if (selector.selector) {
+    currentContext = getElem($, selector.selector, context);
+  }
+
+  if (Array.isArray(selector.or)) {
+    const elems = selector.or.map((o) => getElem($, o, currentContext));
+    return $(elems);
+  }
+
+  return $(currentContext);
 };
 
 export const execOperations = <O extends Op>(

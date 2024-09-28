@@ -4,11 +4,12 @@ export type Query =
   | string
   | {
       selector?: string;
-      text:
+      text?:
         | string
         | {
             includes?: string;
           };
+      or?: Query[];
     };
 
 export type OpObject = {

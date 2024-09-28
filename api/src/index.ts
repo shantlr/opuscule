@@ -8,6 +8,7 @@ import { setupCronJobs } from './lib/cron-jobs';
 import { router } from 'router';
 import { config } from 'config';
 import bodyParser from 'body-parser';
+import { fetchLatests } from 'lib/cron-jobs/fetch-latests';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
@@ -19,6 +20,8 @@ const main = async () => {
 
   await checkGlobalSettings();
   await setupCronJobs();
+
+  // await fetchLatests({ force: true });
 
   const app = express();
 

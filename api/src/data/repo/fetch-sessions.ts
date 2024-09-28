@@ -10,10 +10,16 @@ export const FetchSessionRepo = {
       });
     },
   },
-  create: async (value: (typeof FetchSession)['$inferInsert']) => {
+  create: async (url: string, value: (typeof FetchSession)['$inferInsert']) => {
     const [inserted] = await db
       .insert(FetchSession)
-      .values(value)
+      .values({
+        ...value,
+        cookies: value.cookies.map((cookie) => ({
+          ...cookie,
+          url,
+        })),
+      })
       .returning()
       .onConflictDoUpdate({
         target: FetchSession.key,

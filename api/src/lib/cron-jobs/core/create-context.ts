@@ -9,6 +9,9 @@ import { SourceRepo } from 'data/repo/source';
 import { keyBy, sortBy, uniq } from 'lodash';
 import { FetchPictureJob, fetchPictures } from './fetch-pictures';
 import { Sources } from 'sources';
+import { formatCookie } from 'lib/utils/format-cookies';
+import got, { OptionsOfTextResponseBody } from 'got';
+import { CookieJar } from 'tough-cookie';
 
 export const createPage = ({ data }: { data: string }): FetchPage => {
   const $ = cheerio.load(data);
@@ -21,35 +24,69 @@ export const createPage = ({ data }: { data: string }): FetchPage => {
   return page;
 };
 
-export const createFetcherSession = (
+const createFetcher = async (
+  session: NonNullable<
+    Awaited<ReturnType<(typeof FetchSessionRepo)['get']['byKey']>>
+  >,
+) => {
+  const cookieJar = new CookieJar();
+
+  for (const cookie of session.cookies) {
+    await cookieJar.setCookie(formatCookie(cookie), cookie.url);
+  }
+
+  const instance = got.extend({
+    cookieJar,
+  });
+
+  return {
+    async fetch(url: string, options?: OptionsOfTextResponseBody) {
+      const cacheKey = `${session.key}:${url}`;
+      const cacheData = await HtmlCacheRepo.get(cacheKey);
+      if (cacheData?.data) {
+        console.log(`[fetcher-session] resolved page from cache '${cacheKey}'`);
+        return cacheData.data;
+      }
+
+      const res = await instance(url, {
+        ...options,
+        headers: {
+          ...options?.headers,
+          'User-Agent': session.user_agent,
+        },
+      });
+      return res.body;
+    },
+  };
+};
+
+export const createFetcherSession = async (
   sessionId: string,
   prevSession: Awaited<ReturnType<(typeof FetchSessionRepo)['get']['byKey']>>,
   options: Parameters<SourceContext['initFetcherSession']>[0],
-): FetcherSession => {
+): Promise<FetcherSession> => {
   let currentFetchSession = prevSession;
+
+  let fetcher = currentFetchSession
+    ? await createFetcher(currentFetchSession)
+    : null;
 
   const session: FetcherSession = {
     go: async (path: string) => {
       const url = options?.baseUrl ? joinUrl(options.baseUrl, path) : path;
       const cacheKey = `${sessionId}:${url}`;
 
-      if (currentFetchSession) {
-        // using cache
-        const cacheData = await HtmlCacheRepo.get(cacheKey);
-        if (cacheData?.data) {
-          console.log(
-            `[fetcher-session] resolved page from cache '${cacheKey}'`,
-          );
-          return createPage({
-            data: cacheData.data,
-          });
-        }
+      if (fetcher) {
+        const res = await fetcher.fetch(url);
+        return createPage({
+          data: res,
+        });
       }
 
       // start new session
       console.log(`[fetcher-session] starting new session for '${url}'`);
       const flareRes = await startSession({ url });
-      currentFetchSession = await FetchSessionRepo.create({
+      currentFetchSession = await FetchSessionRepo.create(url, {
         key: sessionId,
         cookies: flareRes.solution.cookies,
         user_agent: flareRes.solution.userAgent,
@@ -60,6 +97,7 @@ export const createFetcherSession = (
         flareRes.solution.status,
       );
 
+      fetcher = await createFetcher(currentFetchSession);
       return createPage({
         data: flareRes.solution.response,
       });
@@ -117,6 +155,10 @@ export const createContext = ({
           const item = itemsById[existingSourceBook.source_book_id];
           if (item.title !== existingSourceBook.title) {
             toUpdate.push(item);
+          }
+
+          if (!item.coverUrl) {
+            console.log(`[book-upsert] ${sourceId}/${item.id} no cover found`);
           }
 
           if (
