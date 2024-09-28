@@ -4,6 +4,7 @@ import { joinUrl } from 'lib/utils/join-url';
 import { parseFormattedRelativeDate } from 'lib/utils/parse-relative-date';
 import { parseFullFormattedDate } from 'lib/utils/parse-formatted-date';
 import { ACCURACY } from 'config/constants';
+import { fetchPictures } from 'lib/cron-jobs/core/fetch-pictures';
 
 export const sourceAsuraScan = {
   id: 'asurascan',
@@ -207,7 +208,7 @@ export const sourceAsuraScan = {
               item: {
                 url: {
                   type: 'attr',
-                  query: `img[alt="chapter page"]`,
+                  query: `img.object-cover.mx-auto`,
                   name: 'src',
                 },
               },
@@ -215,7 +216,25 @@ export const sourceAsuraScan = {
           },
         });
 
-        console.log(JSON.stringify(res, null, 2));
+        const results = z
+          .object({
+            pages: z
+              .object({
+                url: z.string(),
+              })
+              .array(),
+          })
+          .parse(res);
+
+        await fetchPictures([
+          {
+            type: 'chapter_pages',
+            source_id: sourceAsuraScan.id,
+            source_book_id: sourceBookId,
+            source_chapter_id: chapterId,
+            pages: results.pages,
+          },
+        ]);
       },
     },
   },

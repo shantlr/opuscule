@@ -30,6 +30,10 @@ export const config = convict({
         env: 'S3_BUCKET_BOOK_COVER',
         default: 'opuscule-books-cover',
       },
+      chapter_pages: {
+        env: 'S3_BUCKET_CHAPTER_PAGE',
+        default: 'opuscule-chapter-pages',
+      },
     },
   },
 

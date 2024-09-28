@@ -154,7 +154,7 @@ export const SourceBook = sqliteTable(
 
 export const sourceRelations = relations(Source, (rel) => ({
   sourceBooks: rel.many(SourceBook, {
-    relationName: 'soure',
+    relationName: 'source',
   }),
 }));
 export const sourceBookRelations = relations(SourceBook, (rel) => ({

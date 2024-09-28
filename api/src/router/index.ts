@@ -5,6 +5,7 @@ import { SourceRepo } from '../data/repo/source';
 import { z } from 'zod';
 import { BookRepo } from 'data/repo/books-repo';
 import { fetchBook } from 'lib/cron-jobs/fetch-book';
+import { fetchChapter } from 'lib/cron-jobs/fetch-chapter';
 
 export const router = Router();
 
@@ -97,5 +98,40 @@ router.get('/books/:id', async (req, res) => {
 
   return res.status(200).send({
     book,
+  });
+});
+
+/**
+ * Subscribe to a book to automatically fetch new chapters
+ */
+router.post('/books/:id/subscribe', async (req, res) => {
+  //
+});
+/**
+ * Unsubscribe from a book
+ */
+router.delete('/books/:id/subscribe', async (req, res) => {
+  //
+});
+
+router.get('/books/:bookId/chapter/:chapterId', async (req, res) => {
+  const chapter = await BookRepo.chapters.get.byId(req.params.chapterId);
+
+  if (!chapter) {
+    return res.status(404).send();
+  }
+
+  if (!chapter.pages) {
+    await fetchChapter({
+      chapterId: chapter.id,
+    });
+    const updated = await BookRepo.chapters.get.byId(chapter.id);
+    return res.status(200).send({
+      chapter: updated,
+    });
+  }
+
+  return res.status(200).send({
+    chapter,
   });
 });

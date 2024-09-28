@@ -91,11 +91,22 @@ export type SourceContext = {
           rank: number;
           publishedAt?: Date | null;
           publishedAccuracy?: number;
+          pages?: {
+            url: string;
+          }[];
         }[];
       }[],
     ) => Promise<void>;
   };
-  chapters: {};
+  chapters: {
+    upsert: (chapter: {
+      sourceBookId: string;
+      chapterId: string;
+      pages: {
+        url: string;
+      }[];
+    }) => Promise<void>;
+  };
 };
 
 export type ISource = {

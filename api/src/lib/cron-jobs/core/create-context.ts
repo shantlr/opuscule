@@ -12,6 +12,7 @@ import { Sources } from 'sources';
 import { formatCookie } from 'lib/utils/format-cookies';
 import got, { OptionsOfTextResponseBody } from 'got';
 import { CookieJar } from 'tough-cookie';
+import { BookRepo } from 'data/repo/books-repo';
 
 export const createPage = ({ data }: { data: string }): FetchPage => {
   const $ = cheerio.load(data);
@@ -55,6 +56,9 @@ const createFetcher = async (
           'User-Agent': session.user_agent,
         },
       });
+
+      await HtmlCacheRepo.create(cacheKey, res.body, res.statusCode);
+
       return res.body;
     },
   };
@@ -71,13 +75,17 @@ export const createFetcherSession = async (
     ? await createFetcher(currentFetchSession)
     : null;
 
+  if (currentFetchSession && fetcher) {
+    console.log(`[fetcher-session] reusing session '${sessionId}'`);
+  }
+
   const session: FetcherSession = {
     go: async (path: string) => {
       const url = options?.baseUrl ? joinUrl(options.baseUrl, path) : path;
-      const cacheKey = `${sessionId}:${url}`;
 
       if (fetcher) {
         const res = await fetcher.fetch(url);
+        console.log(`[fetcher-session] fetched page '${url}'`);
         return createPage({
           data: res,
         });
@@ -94,6 +102,7 @@ export const createFetcherSession = async (
         })),
         user_agent: flareRes.solution.userAgent,
       });
+      const cacheKey = `${currentFetchSession.key}:${url}`;
       await HtmlCacheRepo.create(
         cacheKey,
         flareRes.solution.response,
@@ -247,7 +256,15 @@ export const createContext = ({
         }
       },
     },
-    chapters: {},
+    chapters: {
+      upsert: async ({ chapterId, sourceBookId, pages }) => {
+        await BookRepo.chapters.updates.pages({
+          sourceBookId,
+          sourceChapterId: chapterId,
+          pages,
+        });
+      },
+    },
   };
   return context;
 };

@@ -1,6 +1,6 @@
 import { db } from 'data/db';
 import { Book, Chapter } from 'data/schema';
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 
 export const BookRepo = {
   get: {
@@ -28,11 +28,38 @@ export const BookRepo = {
         orderBy: [desc(Book.last_chapter_updated_at)],
       });
     },
-    // latestChapters: async () => {
-    //   await db.query.Chapter.findMany({
-    //     orderBy: [desc(Chapter.published_at)],
-    //   });
-    // },
+  },
+  chapters: {
+    get: {
+      byId: async (id: string) => {
+        return db.query.Chapter.findFirst({
+          where: eq(Chapter.id, id),
+        });
+      },
+    },
+    updates: {
+      pages: async ({
+        sourceBookId,
+        sourceChapterId,
+        pages,
+      }: {
+        sourceBookId: string;
+        sourceChapterId: string;
+        pages: { url: string }[];
+      }) => {
+        await db
+          .update(Chapter)
+          .set({
+            pages,
+          })
+          .where(
+            and(
+              eq(Chapter.source_book_id, sourceBookId),
+              eq(Chapter.chapter_id, sourceChapterId),
+            ),
+          );
+      },
+    },
   },
   sync: async (bookId: string) => {},
 };
