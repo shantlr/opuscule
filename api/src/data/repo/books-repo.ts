@@ -26,6 +26,22 @@ export const BookRepo = {
     latestUpdateds: async () => {
       return await db.query.Book.findMany({
         orderBy: [desc(Book.last_chapter_updated_at)],
+        with: {
+          sourceBooks: {
+            with: {
+              chapters: {
+                columns: {
+                  chapter_id: true,
+                  id: true,
+                  chapter_rank: true,
+                  published_at: true,
+                },
+                orderBy: [desc(Chapter.chapter_rank)],
+                limit: 3,
+              },
+            },
+          },
+        },
       });
     },
   },

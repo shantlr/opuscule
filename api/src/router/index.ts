@@ -7,6 +7,7 @@ import { BookRepo } from 'data/repo/books-repo';
 import { fetchBook } from 'lib/cron-jobs/fetch-book';
 import { fetchChapter } from 'lib/cron-jobs/fetch-chapter';
 import dayjs from 'dayjs';
+import { sortBy } from 'lodash';
 
 export const router = Router();
 
@@ -81,11 +82,20 @@ router.delete('/sources/:id/subscribe', async (req, res) => {
 
 router.get('/books', async (req, res) => {
   try {
-    const {} = z.object({}).parse(req.body);
+    // const {} = z.object({}).parse(req.body);
 
     const books = await BookRepo.get.latestUpdateds();
+
+    const mappedBooks = books.map((book) => {
+      const chapters = book.sourceBooks.flatMap((sb) => sb.chapters);
+      return {
+        ...book,
+        latests_chapters: sortBy(chapters, (c) => -c.chapter_rank).slice(0, 3),
+      };
+    });
+
     return res.status(200).send({
-      books,
+      books: mappedBooks,
     });
   } catch (err) {
     console.error(err);

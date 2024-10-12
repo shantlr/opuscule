@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { ProgressBar } from 'components/display/progress-bar';
 import { ApiChapterPage } from 'config/api/types';
-import { useElementWidth } from 'hooks/api/dom/use-element-size';
+import { useElementWidth } from 'hooks/dom/use-element-size';
 import { useBookChapter } from 'hooks/api/use-books';
 import { MainLayout } from 'layouts/main-layout';
 import { useMemo, useState } from 'react';

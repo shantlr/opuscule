@@ -9,9 +9,9 @@ import { AppRouter } from './pages/index.tsx';
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <AppRouter />
-    </QueryClientProvider>
-  </StrictMode>,
+  // <StrictMode>
+  <QueryClientProvider client={queryClient}>
+    <AppRouter />
+  </QueryClientProvider>,
+  // </StrictMode>,
 );

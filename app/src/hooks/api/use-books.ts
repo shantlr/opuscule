@@ -8,10 +8,12 @@ export const useLastUpdatedBooks = createUseQuery(API.books.list, {
 
 export const useBook = createUseQuery(API.books.get, {
   queryKey: ({ id }) => ['book', id, 'details'],
+  enabled: ({ id }) => !!id,
 });
 
 export const useBookChapter = createUseQuery(API.books.chapters.get, {
   queryKey: ({ bookId, chapterId }) => ['book', bookId, 'chapter', chapterId],
+  enabled: ({ bookId }) => !!bookId,
 });
 
 export const useBookRefetch = createUseMutation(API.books.refetch, {
