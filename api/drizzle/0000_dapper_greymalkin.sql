@@ -3,6 +3,8 @@ CREATE TABLE `books` (
 	`title` text NOT NULL,
 	`description` text,
 	`cover_url` text,
+	`last_chapter_updated_at` integer,
+	`last_detail_updated_at` integer,
 	`created_at` integer,
 	`updated_at` integer
 );
@@ -15,6 +17,7 @@ CREATE TABLE `chapters` (
 	`source_book_id` text NOT NULL,
 	`pages` text,
 	`published_at` integer,
+	`published_at_accuracy` integer,
 	`created_at` integer,
 	FOREIGN KEY (`source_id`,`source_book_id`) REFERENCES `source_books`(`source_id`,`source_book_id`) ON UPDATE no action ON DELETE no action
 );
@@ -47,7 +50,10 @@ CREATE TABLE `sources` (
 CREATE TABLE `source_books` (
 	`source_id` text NOT NULL,
 	`source_book_id` text NOT NULL,
+	`source_book_key` text,
 	`book_id` text,
+	`last_chapter_updated_at` integer,
+	`last_fetched_details_at` integer,
 	`title` text NOT NULL,
 	`title_accuracy` integer,
 	`description` text,
@@ -58,3 +64,5 @@ CREATE TABLE `source_books` (
 	FOREIGN KEY (`source_id`) REFERENCES `sources`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`book_id`) REFERENCES `books`(`id`) ON UPDATE no action ON DELETE no action
 );
+--> statement-breakpoint
+CREATE UNIQUE INDEX `unique_source_chapter` ON `chapters` (`source_book_id`,`chapter_id`);

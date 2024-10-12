@@ -13,20 +13,20 @@ const LastBooks = () => {
     <div className="w-full h-full overflow-auto flex flex-wrap gap-6 justify-center pt-8">
       {data?.books?.map((book) => (
         <a key={book.id} href={`/book/${book.id}`}>
-          <div className="w-[160px] transition-all hover:scale-105 rounded overflow-hidden">
+          <div className="w-[320px] p-2 transition-all hover:scale-110 hover:shadow-2xl rounded-2xl overflow-hidden flex bg-white">
+            <div className="w-full p-1">
+              <div className="text-black text-xs">{book.title}</div>
+            </div>
             <div
               role="button"
               className={clsx(
-                'w-full h-[230px] shadow-slate-300 hover:shadow-slate-200 bg-slate-500 p-2 bg-cover',
+                'w-[160px] shrink-0 h-[230px] rounded-xl shadow-slate-300 hover:shadow-slate-200 bg-slate-500 p-2 bg-cover',
               )}
               key={book.id}
               style={{
                 backgroundImage: `url(${book.cover_url})`,
               }}
             ></div>
-            <div className="bg-slate-900 h-full bg-opacity-80 p-1 rounded text-sm">
-              {book.title}
-            </div>
           </div>
         </a>
       ))}

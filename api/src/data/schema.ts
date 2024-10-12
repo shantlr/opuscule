@@ -88,6 +88,7 @@ export const Chapter = sqliteTable(
     pages: text('pages', { mode: 'json' }),
 
     published_at: integer('published_at', { mode: 'timestamp_ms' }),
+    published_at_accuracy: integer('published_at_accuracy'),
     created_at: integer('created_at', { mode: 'timestamp_ms' }).$defaultFn(
       () => new Date(),
     ),
@@ -126,6 +127,8 @@ export const SourceBook = sqliteTable(
       .notNull()
       .references(() => Source.id),
     source_book_id: text('source_book_id').notNull(),
+    source_book_key: text('source_book_key'),
+
     book_id: text('book_id').references(() => Book.id),
 
     last_chapter_updated_at: integer('last_chapter_updated_at', {

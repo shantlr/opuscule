@@ -5,6 +5,7 @@ import { parseFormattedRelativeDate } from 'lib/utils/parse-relative-date';
 import { parseFullFormattedDate } from 'lib/utils/parse-formatted-date';
 import { ACCURACY } from 'config/constants';
 import { fetchPictures } from 'lib/cron-jobs/core/fetch-pictures';
+import { SourceRepo } from 'data/repo/source';
 
 export const sourceAsuraScan = {
   id: 'asurascan',
@@ -63,7 +64,10 @@ export const sourceAsuraScan = {
 
       const parsedItems = z
         .object({
-          id: z.string(),
+          id: z
+            .string()
+            .transform((id) => id.split('-').slice(0, -1).join('-')),
+          key: z.string(),
           url: z.string().transform((url) => joinUrl(sourceAsuraScan.url, url)),
           coverUrl: z
             .string()
@@ -87,6 +91,7 @@ export const sourceAsuraScan = {
           items.map((item) => ({
             ...item,
             id: item.url.match(/\/series\/(?<id>[^/]+)/)?.groups?.id as string,
+            key: item.url.match(/\/series\/(?<id>[^/]+)/)?.groups?.id as string,
             chapters: item.chapters.map((chapt) => ({
               url: chapt.url,
               id: chapt.url.match(/\/chapter\/(?<chapter>[^/]+)/)?.groups
@@ -100,12 +105,25 @@ export const sourceAsuraScan = {
           })),
         );
 
-      await context.books.upsert(parsedItems);
+      await context.books.upsert(
+        parsedItems.map((item) => ({
+          ...item,
+          chapters: item.chapters.map((chapt) => ({
+            ...chapt,
+            publishedAccuracy: ACCURACY.MEDIUM,
+          })),
+        })),
+      );
     },
     book: {
       details: async ({ sourceBookId }, context) => {
+        const sourceBook = await SourceRepo.books.get.byId(
+          sourceAsuraScan.id,
+          sourceBookId,
+        );
+
         const session = await context.initFetcherSession();
-        const page = await session.go(`/series/${sourceBookId}`);
+        const page = await session.go(`/series/${sourceBook?.source_book_key}`);
         const res = await page.map({
           type: 'object',
           fields: {
@@ -172,9 +190,9 @@ export const sourceAsuraScan = {
                 rank: z.number(),
                 title: z.string(),
                 url: z.string(),
-                publishedAt: z
-                  .string()
-                  .transform((d) => parseFullFormattedDate(d)),
+                publishedAt: z.string().transform((d) => {
+                  return parseFullFormattedDate(d);
+                }),
               })
               .array(),
           })
@@ -191,12 +209,27 @@ export const sourceAsuraScan = {
             })),
           });
 
-        await context.books.upsert([{ id: sourceBookId, ...parsedBook }]);
+        await context.books.upsert([
+          {
+            id: sourceBookId,
+            titleAccuracy: ACCURACY.HIGH,
+            descriptionAccuracy: ACCURACY.HIGH,
+            ...parsedBook,
+            chapters: parsedBook.chapters.map((c) => ({
+              ...c,
+              publishedAccuracy: ACCURACY.LOW,
+            })),
+          },
+        ]);
       },
       fetchChapter: async ({ sourceBookId, chapterId }, context) => {
+        const sourceBook = await SourceRepo.books.get.byId(
+          sourceAsuraScan.id,
+          sourceBookId,
+        );
         const session = await context.initFetcherSession();
         const page = await session.go(
-          `/series/${sourceBookId}/chapter/${chapterId}`,
+          `/series/${sourceBook?.source_book_key}/chapter/${chapterId}`,
         );
 
         const res = await page.map({

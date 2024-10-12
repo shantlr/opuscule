@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull, lt, lte, or } from 'drizzle-orm';
+import { and, eq, gt, inArray, isNull, lt, lte, or } from 'drizzle-orm';
 import { db } from '../db.js';
 import { Book, Chapter, Source, SourceBook } from '../schema.js';
 import { Sources } from '../../sources/index.js';
@@ -76,6 +76,14 @@ export const SourceRepo = {
 
   books: {
     get: {
+      byId: async (sourceId: string, sourceBookId: string) => {
+        return db.query.SourceBook.findFirst({
+          where: and(
+            eq(SourceBook.source_id, sourceId),
+            eq(SourceBook.source_book_id, sourceBookId),
+          ),
+        });
+      },
       listById: async (sourceId: string, ids: string[]) => {
         if (!ids.length) {
           return [];
@@ -110,7 +118,7 @@ export const SourceRepo = {
         title: string;
         titleAccuracy?: number;
       }) => {
-        await db
+        const res = await db
           .update(SourceBook)
           .set({
             title: title,
@@ -126,6 +134,33 @@ export const SourceRepo = {
               ),
             ),
           );
+        return {
+          updated: res.changes > 0,
+        };
+      },
+      key: async ({
+        sourceBookId,
+        sourceId,
+        key,
+      }: {
+        sourceId: string;
+        sourceBookId: string;
+        key: string;
+      }) => {
+        const res = await db
+          .update(SourceBook)
+          .set({
+            source_book_key: key,
+          })
+          .where(
+            and(
+              eq(SourceBook.source_id, sourceId),
+              eq(SourceBook.source_book_id, sourceBookId),
+            ),
+          );
+        return {
+          updated: res.changes > 0,
+        };
       },
       description: async ({
         sourceBookId,
@@ -138,7 +173,7 @@ export const SourceRepo = {
         description: string;
         descriptionAccuracy?: number;
       }) => {
-        await db
+        const res = await db
           .update(SourceBook)
           .set({
             description: description,
@@ -157,6 +192,9 @@ export const SourceRepo = {
               ),
             ),
           );
+        return {
+          updated: res.changes > 0,
+        };
       },
       cover: async ({
         sourceId,
@@ -187,6 +225,7 @@ export const SourceRepo = {
       sourceId: string,
       items: {
         id: string;
+        key?: string;
         title?: string;
         titleAccuracy?: number;
         description?: string;
@@ -194,21 +233,32 @@ export const SourceRepo = {
       }[],
     ) => {
       for (const item of items) {
+        let updated = false;
         if (item.title) {
-          await SourceRepo.books.update.title({
+          const res = await SourceRepo.books.update.title({
             sourceId,
             sourceBookId: item.id,
             title: item.title,
             titleAccuracy: item.titleAccuracy,
           });
+          updated = updated || res.updated;
+        }
+        if (item.key) {
+          const res = await SourceRepo.books.update.key({
+            sourceId,
+            sourceBookId: item.id,
+            key: item.key,
+          });
+          updated = updated || res.updated;
         }
         if (item.description) {
-          await SourceRepo.books.update.description({
+          const res = await SourceRepo.books.update.description({
             sourceId,
             sourceBookId: item.id,
             description: item.description,
             descriptionAccuracy: item.descriptionAccuracy,
           });
+          updated = updated || res.updated;
         }
       }
     },
@@ -216,10 +266,12 @@ export const SourceRepo = {
       sourceId: string,
       items: {
         id: string;
+        key?: string;
         title: string;
         titleAccuracy?: number;
         description?: string;
         descriptionAccuracy?: number;
+        detailsFetchedAt?: Date | null;
       }[],
     ) => {
       if (!items.length) {
@@ -230,6 +282,7 @@ export const SourceRepo = {
         items.map((item) => ({
           source_id: sourceId,
           source_book_id: item.id,
+          source_book_key: item.key,
           title: item.title,
           title_accuracy: item.titleAccuracy ?? ACCURACY.LOW,
           description: item.description,
@@ -386,6 +439,46 @@ export const SourceRepo = {
             );
         }
       });
+    },
+    updates: async ({
+      sourceId,
+      sourceBookId,
+      chapters,
+    }: {
+      sourceId: string;
+      sourceBookId: string;
+      chapters: {
+        id: string;
+        publishedAt?: Date | null;
+        publishedAtAccuracy?: number | null;
+      }[];
+    }) => {
+      for (const chapter of chapters) {
+        if (chapter.publishedAt) {
+          await db
+            .update(Chapter)
+            .set({
+              published_at: chapter.publishedAt,
+              published_at_accuracy:
+                chapter.publishedAtAccuracy ?? ACCURACY.LOW,
+            })
+            .where(
+              and(
+                eq(Chapter.source_id, sourceId),
+                eq(Chapter.source_book_id, sourceBookId),
+                eq(Chapter.chapter_id, chapter.id),
+                or(
+                  isNull(Chapter.published_at),
+                  isNull(Chapter.published_at_accuracy),
+                  gt(
+                    Chapter.published_at_accuracy,
+                    chapter.publishedAtAccuracy ?? ACCURACY.LOW,
+                  ),
+                ),
+              ),
+            );
+        }
+      }
     },
   },
 };

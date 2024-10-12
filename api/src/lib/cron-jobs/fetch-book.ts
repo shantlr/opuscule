@@ -1,3 +1,4 @@
+import { BookRepo } from 'data/repo/books-repo';
 import { SourceRepo } from 'data/repo/source';
 import { Sources, fetchBookDetails } from 'sources';
 
@@ -19,5 +20,6 @@ export const fetchBook = async (bookId: string) => {
 
     await fetchBookDetails(source, sourceBook.source_book_id);
   }
+  await BookRepo.update.lastDetailsFetched(bookId, new Date());
   console.log(`[fetch-book] ${bookId} done`);
 };

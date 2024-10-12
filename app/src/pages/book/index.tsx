@@ -1,14 +1,17 @@
-import { useBook } from 'hooks/api/use-books';
+import { Button } from 'components/interactions/button';
+import { useBook, useBookRefetch } from 'hooks/api/use-books';
 import { MainLayout } from 'layouts/main-layout';
 import { flatMap, groupBy, map } from 'lodash';
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
+import { dayjs } from 'config/dayjs';
 
 export const BookDetails = () => {
   const params = useParams<{ bookId: string }>();
   const { data } = useBook({
     id: params.bookId,
   });
+  const refetchBook = useBookRefetch();
 
   const chapters = useMemo(() => {
     const flattened = flatMap(data?.book?.sourceBooks, (sb) => sb.chapters);
@@ -21,12 +24,39 @@ export const BookDetails = () => {
 
   return (
     <MainLayout>
-      <div className="p-2 h-full w-full">
-        <ul className="h-full w-full overflow-auto">
-          {chapters?.map((chapter) => (
+      <div className="p-2 h-full w-full overflow-auto">
+        <div className="mb-8 flex">
+          <img
+            className="w-[200px] h-[300px] object-contain rounded overflow-hidden"
+            src={data?.book?.cover_url ?? ''}
+          />
+          <div>
+            <h2>{data?.book?.title}</h2>
+            <p>{data?.book?.description}</p>
+          </div>
+          <div>
+            <Button
+              onClick={() => {
+                refetchBook.mutate({
+                  id: params.bookId!,
+                });
+              }}
+            >
+              refresh
+            </Button>
+          </div>
+        </div>
+        <ul className="h-full w-full">
+          {chapters?.reverse().map((chapter) => (
             <li key={chapter.id}>
               <a href={`/book/${data?.book?.id}/chapter/${chapter.id}`}>
-                Chapter {chapter.chapter_rank}
+                <span>Chapter {chapter.chapter_rank}</span>
+                <span>
+                  -{' '}
+                  {chapter.published_at
+                    ? dayjs(chapter.published_at).format('MMMM DD YYYY')
+                    : ''}
+                </span>
               </a>
             </li>
           ))}

@@ -61,5 +61,16 @@ export const BookRepo = {
       },
     },
   },
+
+  update: {
+    lastDetailsFetched: async (id: string, date: Date) => {
+      await db
+        .update(Book)
+        .set({
+          last_detail_updated_at: date,
+        })
+        .where(eq(Book.id, id));
+    },
+  },
   sync: async (bookId: string) => {},
 };

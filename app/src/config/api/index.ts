@@ -1,29 +1,35 @@
 import { ApiBookDetail, ApiBookSummary, ApiChapter, ApiSource } from './types';
-import { get, result } from './utils';
+import { get, json, post } from './utils';
 
 export const API = {
   sources: {
     list: get({
       path: '/sources',
-      result: result<ApiSource[]>,
+      result: json<ApiSource[]>,
     }),
   },
   books: {
+    list: get({
+      path: '/books',
+      result: json<{ books: ApiBookSummary[] }>,
+    }),
+
     get: get({
       path: ({ id }: { id: string }) => `/books/${id}`,
-      result: result<{
+      result: json<{
         book: ApiBookDetail;
       }>,
     }),
-    list: get({
-      path: '/books',
-      result: result<{ books: ApiBookSummary[] }>,
+    refetch: post({
+      path: ({ id }: { id: string }) => `/books/${id}/refetch`,
+      result: json<{ book: ApiBookDetail }>,
     }),
+
     chapters: {
       get: get({
         path: ({ bookId, chapterId }: { bookId: string; chapterId: string }) =>
           `/books/${bookId}/chapter/${chapterId}`,
-        result: result<{
+        result: json<{
           chapter: ApiChapter;
         }>,
       }),

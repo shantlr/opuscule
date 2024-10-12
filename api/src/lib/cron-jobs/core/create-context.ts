@@ -13,6 +13,7 @@ import { formatCookie } from 'lib/utils/format-cookies';
 import got, { OptionsOfTextResponseBody } from 'got';
 import { CookieJar } from 'tough-cookie';
 import { BookRepo } from 'data/repo/books-repo';
+import { ACCURACY } from 'config/constants';
 
 export const createPage = ({ data }: { data: string }): FetchPage => {
   const $ = cheerio.load(data);
@@ -140,6 +141,8 @@ export const createContext = ({
     books: {
       upsert: async (items) => {
         const itemsById = keyBy(items, (i) => i.id);
+
+        //#region Book upsert
         const existings = await SourceRepo.books.get.listById(
           sourceId,
           items.map((i) => i.id),
@@ -165,7 +168,17 @@ export const createContext = ({
 
         existings.forEach((existingSourceBook) => {
           const item = itemsById[existingSourceBook.source_book_id];
-          if (item.title !== existingSourceBook.title) {
+
+          const shouldUpdateTitle =
+            item.title !== existingSourceBook.title &&
+            (item.titleAccuracy ?? ACCURACY.LOW) >=
+              (existingSourceBook.title_accuracy ?? ACCURACY.LOW);
+          const shouldUpdateDescription =
+            item.description !== existingSourceBook.description &&
+            (item.descriptionAccuracy ?? ACCURACY.LOW) >=
+              (existingSourceBook.description_accuracy ?? ACCURACY.LOW);
+
+          if (shouldUpdateTitle || shouldUpdateDescription) {
             toUpdate.push(item);
           }
 
@@ -192,7 +205,9 @@ export const createContext = ({
         console.log(
           `[book-upsert] ${items.length} input items | ${missings.length} created | ${toUpdate.length} updated`,
         );
+        //#endregion
 
+        //#region Book cover
         coverToFetches.push(
           ...missings
             .filter((item) => item.coverUrl)
@@ -205,6 +220,8 @@ export const createContext = ({
         );
         await fetchPictures(coverToFetches);
         console.log(`[book-upsert] ${coverToFetches.length} covers fetched`);
+        //#endregion
+
         await SourceRepo.books.syncBooks(
           sourceId,
           uniq([
@@ -215,7 +232,7 @@ export const createContext = ({
           ]),
         );
 
-        // Upsert chapters
+        //#region Upsert chapters
         {
           for (const sourceBook of items) {
             if (!sourceBook.chapters?.length) {
@@ -223,6 +240,7 @@ export const createContext = ({
             }
 
             const { chapters } = sourceBook;
+
             const existingChapters =
               await SourceRepo.chapters.get.listByNumbers({
                 sourceId,
@@ -233,12 +251,34 @@ export const createContext = ({
               existingChapters,
               (c) => c.chapter_id,
             );
-            const toCreate = chapters.filter((i) => !existingByNumber[i.id]);
+            const toCreate: typeof chapters = [];
+            const toUpdate: typeof chapters = [];
+
+            for (const chapter of chapters) {
+              const existing = existingByNumber[chapter.id];
+              if (!existing) {
+                toCreate.push(chapter);
+                continue;
+              }
+
+              const shouldUpdatePublishedAt =
+                existing.published_at !== chapter.publishedAt &&
+                (chapter.publishedAccuracy ?? ACCURACY.LOW) >=
+                  (existing.published_at_accuracy ?? ACCURACY.LOW);
+              if (shouldUpdatePublishedAt) {
+                toUpdate.push(chapter);
+              }
+            }
 
             await SourceRepo.chapters.creates({
               sourceId,
               sourceBookId: sourceBook.id,
               chapters: toCreate,
+            });
+            await SourceRepo.chapters.updates({
+              sourceId,
+              sourceBookId: sourceBook.id,
+              chapters: toUpdate,
             });
 
             const sorted = sortBy(toCreate, (c) => c.rank);
@@ -254,6 +294,7 @@ export const createContext = ({
             }
           }
         }
+        //#endregion
       },
     },
     chapters: {

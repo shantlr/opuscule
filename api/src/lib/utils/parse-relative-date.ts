@@ -14,14 +14,14 @@ export const parseFormattedRelativeDate = (date: string) => {
             .startOf('minute')
             .toDate();
         }
-        case 'day':
-          return dayjs()
-            .subtract(Number(m.groups.value), 'day')
-            .startOf('day')
-            .toDate();
         case 'hour':
           return dayjs()
             .subtract(Number(m.groups.value), 'hour')
+            .startOf('hour')
+            .toDate();
+        case 'day':
+          return dayjs()
+            .subtract(Number(m.groups.value), 'day')
             .startOf('day')
             .toDate();
         case 'month':

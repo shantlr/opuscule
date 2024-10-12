@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "fa57edd1-e9f2-4a4b-a121-9cb825e72297",
+  "id": "49d389a4-8553-4a41-bcf7-2d8271f067ba",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "books": {
@@ -31,6 +31,20 @@
         "cover_url": {
           "name": "cover_url",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "last_chapter_updated_at": {
+          "name": "last_chapter_updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "last_detail_updated_at": {
+          "name": "last_detail_updated_at",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -107,6 +121,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "published_at_accuracy": {
+          "name": "published_at_accuracy",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
@@ -115,7 +136,16 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "unique_source_chapter": {
+          "name": "unique_source_chapter",
+          "columns": [
+            "source_book_id",
+            "chapter_id"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {
         "source_book_ref": {
           "name": "source_book_ref",
@@ -282,9 +312,30 @@
           "notNull": true,
           "autoincrement": false
         },
+        "source_book_key": {
+          "name": "source_book_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "book_id": {
           "name": "book_id",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "last_chapter_updated_at": {
+          "name": "last_chapter_updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "last_fetched_details_at": {
+          "name": "last_fetched_details_at",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false

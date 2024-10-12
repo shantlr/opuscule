@@ -1,5 +1,6 @@
 import clsx from 'clsx';
-import { ApiChapterPage } from 'components/api/types';
+import { ProgressBar } from 'components/display/progress-bar';
+import { ApiChapterPage } from 'config/api/types';
 import { useElementWidth } from 'hooks/api/dom/use-element-size';
 import { useBookChapter } from 'hooks/api/use-books';
 import { MainLayout } from 'layouts/main-layout';
@@ -52,18 +53,32 @@ export const BookChapter = () => {
   console.log({ data });
   const [elem, setElem] = useState<HTMLElement | null>(null);
   const containerWidth = useElementWidth(elem);
-
-  console.log(containerWidth);
+  const [readProgress, setReadProgress] = useState(0);
 
   return (
     <MainLayout>
-      <div
-        ref={setElem}
-        className="h-full w-full overflow-auto flex flex-col items-center"
-      >
-        {data?.chapter?.pages?.map((page, index) => (
-          <Page key={index} page={page} containerWidth={containerWidth} />
-        ))}
+      <div className="h-full w-full flex flex-col overflow-hidden">
+        <div className="flex justify-center mb-2">
+          <ProgressBar className="w-[300px]" percent={readProgress} />
+        </div>
+        <div
+          ref={setElem}
+          className="h-full w-full overflow-auto flex flex-col items-center"
+          onScroll={(e) => {
+            const percent =
+              e.currentTarget.scrollTop / e.currentTarget.scrollHeight;
+            console.log(
+              percent,
+              e.currentTarget.scrollTop,
+              e.currentTarget.scrollHeight,
+            );
+            setReadProgress(percent);
+          }}
+        >
+          {data?.chapter?.pages?.map((page, index) => (
+            <Page key={index} page={page} containerWidth={containerWidth} />
+          ))}
+        </div>
       </div>
     </MainLayout>
   );

@@ -1,15 +1,6 @@
 import { useQuery, QueryKey } from 'react-query';
 
-// interface UseApiQuery<
-//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-//   QueryFn extends (...args: any[]) => any,
-//   HookArgs extends Partial<Parameters<QueryFn>[0]>,
-// > {
-//   (hookArgs: HookArgs): Return;
-// }
-
 const createUseQuery = <
-  // QueryFn extends () => any | ((args: Record<string, any>) => any),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   QueryFn extends (...args: any[]) => any,
   HookArgs extends Partial<Parameters<QueryFn>[0]>,

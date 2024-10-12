@@ -77,6 +77,7 @@ export type SourceContext = {
     upsert: (
       items: {
         id: string;
+        key?: string;
 
         title?: string;
         titleAccuracy?: number;
