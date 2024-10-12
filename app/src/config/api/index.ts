@@ -1,5 +1,5 @@
 import { ApiBookDetail, ApiBookSummary, ApiChapter, ApiSource } from './types';
-import { get, json, post } from './utils';
+import { del, get, json, post } from './utils';
 
 export const API = {
   sources: {
@@ -12,6 +12,15 @@ export const API = {
     list: get({
       path: '/books',
       result: json<{ books: ApiBookSummary[] }>,
+    }),
+
+    bookmark: post({
+      path: ({ id }: { id: string }) => `/books/${id}/bookmark`,
+      result: json<{ book: ApiBookSummary }>,
+    }),
+    unbookmark: del({
+      path: ({ id }: { id: string }) => `/books/${id}/bookmark`,
+      result: json<{ book: ApiBookSummary }>,
     }),
 
     get: get({

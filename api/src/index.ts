@@ -8,6 +8,8 @@ import { setupCronJobs } from './lib/cron-jobs';
 import { router } from 'router';
 import { config } from 'config';
 import bodyParser from 'body-parser';
+import { fetchSourceLatests } from 'sources';
+import { sourceAsuraScan } from 'sources/asurascan';
 // import { fetchBookDetails } from 'sources';
 // import { sourceAsuraScan } from 'sources/asurascan';
 

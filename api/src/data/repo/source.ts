@@ -1,4 +1,4 @@
-import { and, eq, gt, inArray, isNull, lt, lte, or } from 'drizzle-orm';
+import { and, eq, gte, inArray, isNull, lt, lte, or } from 'drizzle-orm';
 import { db } from '../db.js';
 import { Book, Chapter, Source, SourceBook } from '../schema.js';
 import { Sources } from '../../sources/index.js';
@@ -300,6 +300,7 @@ export const SourceRepo = {
           .values({
             title: sb.title,
             cover_url: sb.cover_url,
+            description: sb.description,
           })
           .returning();
         await t
@@ -392,9 +393,7 @@ export const SourceRepo = {
         );
 
         // Update last chapter updated at
-        const lastPublished = maxBy(chapters, (c) =>
-          (c.publishedAt ?? new Date())?.valueOf(),
-        );
+        const lastPublished = maxBy(chapters, (c) => c.publishedAt?.valueOf());
 
         const lastPublishedAt = lastPublished?.publishedAt || new Date();
 
@@ -405,6 +404,7 @@ export const SourceRepo = {
           })
           .where(
             and(
+              eq(SourceBook.source_id, sourceId),
               eq(SourceBook.source_book_id, sourceBookId),
               eq(SourceBook.source_id, sourceId),
               or(
@@ -470,7 +470,7 @@ export const SourceRepo = {
                 or(
                   isNull(Chapter.published_at),
                   isNull(Chapter.published_at_accuracy),
-                  gt(
+                  gte(
                     Chapter.published_at_accuracy,
                     chapter.publishedAtAccuracy ?? ACCURACY.LOW,
                   ),

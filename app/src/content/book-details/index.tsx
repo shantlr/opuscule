@@ -1,9 +1,10 @@
 import { Button } from 'components/interactions/button';
 import { useBook, useBookRefetch } from 'hooks/api/use-books';
-import { MainLayout } from 'layouts/main-layout';
-import { flatMap, groupBy, map } from 'lodash';
+import { flatMap, groupBy, map, sortBy } from 'lodash';
 import { useMemo } from 'react';
 import { dayjs } from 'config/dayjs';
+import { ButtonIcon } from 'components/interactions/button-icon';
+import { RefreshCw } from 'lucide-react';
 
 export const ContentBookDetails = ({ bookId }: { bookId?: string }) => {
   const { data } = useBook({
@@ -14,39 +15,42 @@ export const ContentBookDetails = ({ bookId }: { bookId?: string }) => {
   const chapters = useMemo(() => {
     const flattened = flatMap(data?.book?.sourceBooks, (sb) => sb.chapters);
     const grouped = groupBy(flattened, (c) => c.chapter_rank);
-    return map(grouped, (g) => ({
-      ...g[0],
-      sources: g.map((c) => c.source_id),
-    }));
+    return sortBy(
+      map(grouped, (g) => ({
+        ...g[0],
+        sources: g.map((c) => c.source_id),
+      })),
+      (c) => -c.chapter_rank,
+    );
   }, [data]);
 
   return (
-    <div className="p-2 h-full w-full overflow-auto">
+    <div className="flex flex-col p-2 h-full w-full overflow-auto">
       <div className="mb-8 flex">
         <div
-          className="w-[200px] h-[300px] object-contain rounded-2xl bg-cover overflow-hidden"
+          className="w-[200px] shrink-0 h-[300px] object-contain rounded-2xl bg-cover overflow-hidden mr-4"
           style={{
             backgroundImage: `url(${data?.book?.cover_url})`,
           }}
         />
-        <div>
+        <div className="w-full">
           <h2>{data?.book?.title}</h2>
           <p>{data?.book?.description}</p>
         </div>
         <div>
-          <Button
+          <ButtonIcon
             onClick={() => {
               refetchBook.mutate({
-                id: params.bookId!,
+                id: bookId!,
               });
             }}
           >
-            refresh
-          </Button>
+            <RefreshCw />
+          </ButtonIcon>
         </div>
       </div>
       <ul className="h-full w-full">
-        {chapters?.reverse().map((chapter) => (
+        {chapters?.map((chapter) => (
           <li key={chapter.id}>
             <a href={`/book/${data?.book?.id}/chapter/${chapter.id}`}>
               <span>Chapter {chapter.chapter_rank}</span>

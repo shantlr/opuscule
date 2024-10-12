@@ -106,15 +106,18 @@ export const Chapter = sqliteTable(
   }),
 );
 
-// export const SubscribedBook = sqliteTable('subscribed_book', {
-//   book_id: text('id')
-//     .references(() => Book.id)
-//     .notNull(),
-//   user_id: text('user_id'),
-//   left_to_read: integer('left_to_read')
-//     .notNull()
-//     .$defaultFn(() => 0),
-// });
+export const UserBookState = sqliteTable(
+  'user_book_states',
+  {
+    book_id: text('book_id').notNull(),
+    bookmarked: integer('bookmarked', { mode: 'boolean' }).$defaultFn(
+      () => false,
+    ),
+  },
+  (t) => ({
+    unique: unique('unique_user_book_state').on(t.book_id),
+  }),
+);
 
 export const Source = sqliteTable('sources', {
   id: text('id').primaryKey(),

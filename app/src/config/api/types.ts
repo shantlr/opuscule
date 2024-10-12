@@ -12,6 +12,7 @@ export type ApiBookSummary = {
   cover_url: string | null;
   last_chapter_updated_at: Date | null;
   latests_chapters: ApiChapterSummary[];
+  bookmarked: boolean;
 };
 
 export type ApiBookDetail = ApiBookSummary & {

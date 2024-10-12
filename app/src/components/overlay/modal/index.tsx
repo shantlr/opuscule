@@ -6,12 +6,43 @@ import clsx from 'clsx';
 import { useElementRect } from 'hooks/dom/use-element-size';
 import { useDomElem } from 'hooks/dom/use-dom-elem';
 import { useLastValue } from 'hooks/common/use-last-value';
+import { ButtonIcon } from 'components/interactions/button-icon';
+import { Maximize2, X } from 'lucide-react';
 
 const TRANSITION_MS = 300;
 
-export const ModalContent = ({ children }: { children: ReactNode }) => {
+export const ModalContent = ({
+  className,
+  children,
+  onExpand,
+  onClose,
+}: {
+  className?: string;
+  children: ReactNode;
+  onExpand?: () => void;
+  onClose?: () => void;
+}) => {
   return (
-    <div className="rounded-2xl overflow-hidden bg-mainbg p-2 px-4 max-w-[95svw] max-h-[95svh] flex flex-col">
+    <div
+      className={clsx(
+        'rounded-2xl overflow-hidden bg-mainbg p-2 max-w-[95svw] max-h-[95svh] flex',
+        className,
+      )}
+    >
+      {(!!onExpand || !!onClose) && (
+        <div className="flex flex-col items-center gap-2">
+          {!!onClose && (
+            <ButtonIcon onClick={onClose}>
+              <X />
+            </ButtonIcon>
+          )}
+          {onExpand && (
+            <ButtonIcon onClick={onExpand}>
+              <Maximize2 />
+            </ButtonIcon>
+          )}
+        </div>
+      )}
       {children}
     </div>
   );

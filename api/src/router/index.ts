@@ -7,7 +7,7 @@ import { BookRepo } from 'data/repo/books-repo';
 import { fetchBook } from 'lib/cron-jobs/fetch-book';
 import { fetchChapter } from 'lib/cron-jobs/fetch-chapter';
 import dayjs from 'dayjs';
-import { sortBy } from 'lodash';
+import { keyBy, sortBy } from 'lodash';
 
 export const router = Router();
 
@@ -85,11 +85,16 @@ router.get('/books', async (req, res) => {
     // const {} = z.object({}).parse(req.body);
 
     const books = await BookRepo.get.latestUpdateds();
+    const userStates = await BookRepo.userStates.list(
+      books.map((book) => book.id),
+    );
+    const stateByBookId = keyBy(userStates, (state) => state.book_id);
 
     const mappedBooks = books.map((book) => {
       const chapters = book.sourceBooks.flatMap((sb) => sb.chapters);
       return {
         ...book,
+        bookmarked: stateByBookId[book.id]?.bookmarked ?? false,
         latests_chapters: sortBy(chapters, (c) => -c.chapter_rank).slice(0, 3),
       };
     });
@@ -157,14 +162,38 @@ router.post('/books/:id/refetch', async (req, res) => {
 /**
  * Subscribe to a book to automatically fetch new chapters
  */
-router.post('/books/:id/subscribe', async (req, res) => {
-  //
+router.post('/books/:id/bookmark', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { error } = await BookRepo.bookmark.create(id);
+
+    if (error) {
+      return res.status(400).send({ error });
+    }
+
+    return res.status(200).send({});
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send();
+  }
 });
 /**
  * Unsubscribe from a book
  */
-router.delete('/books/:id/subscribe', async (req, res) => {
-  //
+router.delete('/books/:id/bookmark', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { error } = await BookRepo.bookmark.delete(id);
+
+    if (error) {
+      return res.status(400).send({ error });
+    }
+
+    return res.status(200).send({});
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send();
+  }
 });
 
 router.get('/books/:bookId/chapter/:chapterId', async (req, res) => {

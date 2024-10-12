@@ -1,6 +1,6 @@
 import { db } from 'data/db';
-import { Book, Chapter } from 'data/schema';
-import { and, desc, eq } from 'drizzle-orm';
+import { Book, UserBookState, Chapter } from 'data/schema';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 
 export const BookRepo = {
   get: {
@@ -75,6 +75,63 @@ export const BookRepo = {
             ),
           );
       },
+    },
+  },
+
+  bookmark: {
+    create: async (bookId: string) => {
+      const book = await db.query.Book.findFirst({
+        where: eq(Book.id, bookId),
+      });
+      if (!book) {
+        return { error: 'INVALID_BOOK' as const };
+      }
+      await db
+        .insert(UserBookState)
+        .values({
+          book_id: bookId,
+          bookmarked: true,
+        })
+        .onConflictDoUpdate({
+          target: UserBookState.book_id,
+          set: {
+            bookmarked: true,
+          },
+        });
+      return {};
+    },
+    delete: async (bookId: string) => {
+      const book = await db.query.Book.findFirst({
+        where: eq(Book.id, bookId),
+      });
+      if (!book) {
+        return { error: 'INVALID_BOOK' as const };
+      }
+
+      await db
+        .insert(UserBookState)
+        .values({
+          book_id: bookId,
+          bookmarked: false,
+        })
+        .onConflictDoUpdate({
+          target: UserBookState.book_id,
+          set: {
+            bookmarked: false,
+          },
+        });
+      return {};
+    },
+  },
+
+  userStates: {
+    list: (bookIds: string[]) => {
+      if (!bookIds.length) {
+        return [];
+      }
+      return db.query.UserBookState.findMany({
+        where: inArray(UserBookState.book_id, bookIds),
+      });
     },
   },
 

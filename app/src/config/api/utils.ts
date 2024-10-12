@@ -70,3 +70,11 @@ export const post = <Args, Result, Body, Query>(
     ...config,
     method: 'POST',
   });
+
+export const del = <Args, Result, Body, Query>(
+  config: FetchConfg<Args, Result, Body, Query>,
+) =>
+  baseCreateFetcher({
+    ...config,
+    method: 'DELETE',
+  });

@@ -50,7 +50,7 @@ export const sourceAsuraScan = {
               },
               publishedAt: {
                 type: 'text',
-                query: 'p',
+                query: 'p.items-end',
               },
               url: {
                 type: 'attr',

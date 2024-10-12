@@ -17,7 +17,19 @@ export const useBookChapter = createUseQuery(API.books.chapters.get, {
 });
 
 export const useBookRefetch = createUseMutation(API.books.refetch, {
+  onSuccess: ({ data, variables, queryClient }) => {
+    queryClient.invalidateQueries(['book', variables.id]);
+  },
+});
+
+export const useBookmarkBook = createUseMutation(API.books.bookmark, {
   onSuccess: ({ data, queryClient }) => {
-    console.log('>>REFETCH', data);
+    queryClient.invalidateQueries(['book']);
+  },
+});
+
+export const useUnbookmarkBook = createUseMutation(API.books.unbookmark, {
+  onSuccess: ({ data, queryClient }) => {
+    queryClient.invalidateQueries(['book']);
   },
 });
