@@ -3,6 +3,7 @@ import { HomePage } from './home';
 import { SourcesSubscribe } from './sources/subscribe';
 import { BookDetails } from './book';
 import { BookChapter } from './book/chapter';
+import { PageNotFound } from './404';
 
 const router = createBrowserRouter([
   {
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
   {
     path: '/book/:bookId/chapter/:chapterId',
     element: <BookChapter />,
+  },
+  {
+    path: '*',
+    element: <PageNotFound />,
   },
 ]);
 

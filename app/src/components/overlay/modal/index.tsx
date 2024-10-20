@@ -8,6 +8,7 @@ import { useDomElem } from 'hooks/dom/use-dom-elem';
 import { useLastValue } from 'hooks/common/use-last-value';
 import { ButtonIcon } from 'components/interactions/button-icon';
 import { Maximize2, X } from 'lucide-react';
+import { useListenKey } from 'hooks/common/use-key-listener';
 
 const TRANSITION_MS = 300;
 
@@ -74,6 +75,12 @@ export const Modal = ({
       !!contentRect,
     TRANSITION_MS,
   );
+
+  useListenKey({
+    Escape: () => {
+      onClose();
+    },
+  });
 
   if (presence === 'hidden') {
     return null;
