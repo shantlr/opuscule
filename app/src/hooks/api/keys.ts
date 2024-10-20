@@ -1,6 +1,6 @@
 import { QueryKey } from 'react-query';
 
-const K = Symbol('Node key resolve');
+export const K = Symbol('Node key resolve');
 
 type Identity<T> = T;
 type FlattenType<T> = Identity<{
@@ -34,7 +34,7 @@ type KeyTreeCreator<T extends Record<string, IKeyNode>> = {
   [key in keyof T]: KeyNodeCreator<T[key]>;
 };
 
-const createKeyTree = <T extends IKeyNode>(
+export const createKeyTree = <T extends IKeyNode>(
   keyTree: T,
   resolveParentKey: (any: Record<string, unknown>) => QueryKey = () => [],
 ): KeyTreeCreator<T> => {

@@ -18,7 +18,7 @@ export const BookItem = ({
   return (
     <div key={book.id}>
       <div
-        className="w-[320px] p-2 transition-all hover:scale-110 hover:shadow-2xl rounded-2xl overflow-hidden flex bg-white cursor-pointer"
+        className="w-[320px] p-2 transition-all hover:scale-110 hover:shadow-2xl rounded-2xl overflow-hidden flex gap-1 bg-secondarybg cursor-pointer"
         onClick={(e) => {
           onFocusBook(e);
         }}
@@ -29,7 +29,7 @@ export const BookItem = ({
             <span className="text-base mr-1 cursor-pointer hover:text-red-400 transition-all">
               {book.bookmarked ? (
                 <Bookmark
-                  className="text-red-400 fill-red-400 hover:fill-none transition-all"
+                  className="text-red-400 fill-red-400 transition-all"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -48,10 +48,12 @@ export const BookItem = ({
             </span>
             {book.title}
           </div>
+
+          {/* Latests chapter list */}
           <ul>
             {book.latests_chapters.map((chapter) => (
               <li
-                className="mb-1 rounded-xl hover:bg-slate-300 px-2 py-1 transition-all cursor-pointer"
+                className="flex flex-col mb-1 rounded-xl hover:bg-mainbg px-2 py-1 transition-all cursor-pointer"
                 key={chapter.id}
               >
                 <a
@@ -69,6 +71,7 @@ export const BookItem = ({
             ))}
           </ul>
         </div>
+
         {/* right cover */}
         <div
           className={clsx(

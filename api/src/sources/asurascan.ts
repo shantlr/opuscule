@@ -232,7 +232,7 @@ export const sourceAsuraScan = {
           `/series/${sourceBook?.source_book_key}/chapter/${chapterId}`,
         );
 
-        const res = await page.map({
+        const res = page.map({
           type: 'object',
           fields: {
             pages: {
