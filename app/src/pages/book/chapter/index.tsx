@@ -57,7 +57,7 @@ export const BookChapter = () => {
 
   return (
     <MainLayout>
-      <div className="h-full w-full flex flex-col overflow-hidden">
+      <div className="p-2 h-full w-full flex flex-col overflow-hidden">
         <div className="flex justify-center mb-2">
           <ProgressBar className="w-[300px]" percent={readProgress} />
         </div>

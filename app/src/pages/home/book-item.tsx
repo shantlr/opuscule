@@ -18,7 +18,7 @@ export const BookItem = ({
   return (
     <div key={book.id}>
       <div
-        className="w-[320px] p-2 transition-all hover:scale-110 hover:shadow-2xl rounded-2xl overflow-hidden flex bg-white"
+        className="w-[320px] p-2 transition-all hover:scale-110 hover:shadow-2xl rounded-2xl overflow-hidden flex bg-white cursor-pointer"
         onClick={(e) => {
           onFocusBook(e);
         }}
@@ -50,7 +50,10 @@ export const BookItem = ({
           </div>
           <ul>
             {book.latests_chapters.map((chapter) => (
-              <li className="mb-1" key={chapter.id}>
+              <li
+                className="mb-1 rounded-xl hover:bg-slate-300 px-2 py-1 transition-all cursor-pointer"
+                key={chapter.id}
+              >
                 <a
                   className="text-sm"
                   href={`/book/${book.id}/chapter/${chapter.id}`}
@@ -68,7 +71,6 @@ export const BookItem = ({
         </div>
         {/* right cover */}
         <div
-          role="button"
           className={clsx(
             'w-[160px] shrink-0 h-[230px] rounded-xl shadow-slate-300 hover:shadow-slate-200 bg-slate-500 p-2 bg-cover',
             'flex justify-end',
