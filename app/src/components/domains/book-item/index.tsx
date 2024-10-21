@@ -7,10 +7,10 @@ import { MouseEvent } from 'react';
 
 export const BookItem = ({
   book,
-  onFocusBook,
+  onClick,
 }: {
   book: ApiBookSummary;
-  onFocusBook: (e: MouseEvent) => void;
+  onClick?: (e: MouseEvent) => void;
 }) => {
   const bookmark = useBookmarkBook();
   const unbookmark = useUnbookmarkBook();
@@ -20,7 +20,7 @@ export const BookItem = ({
       <div
         className="w-[320px] p-2 transition-all hover:scale-110 hover:shadow-2xl rounded-2xl overflow-hidden flex gap-1 bg-secondarybg cursor-pointer"
         onClick={(e) => {
-          onFocusBook(e);
+          onClick?.(e);
         }}
       >
         {/* left part */}

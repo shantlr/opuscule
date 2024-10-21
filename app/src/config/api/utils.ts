@@ -35,13 +35,20 @@ export const baseCreateFetcher = <Args, Result, Body, Query>({
 
     const query =
       typeof resolveQuery === 'function' ? resolveQuery(args) : undefined;
+
     if (query) {
       if (query instanceof URLSearchParams) {
         url += `?${query.toString()}`;
       } else {
         const params = new URLSearchParams();
         for (const key in query) {
-          params.append(key, query[key] as string);
+          if (Array.isArray(query[key])) {
+            for (const value of query[key] as string[]) {
+              params.append(key, value);
+            }
+          } else {
+            params.append(key, query[key] as string);
+          }
         }
         url += `?${params.toString()}`;
       }

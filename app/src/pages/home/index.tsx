@@ -1,11 +1,12 @@
+import { useState } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
+
 import { Modal, ModalContent } from 'components/overlay/modal';
 import { ContentBookDetails } from 'content/book-details';
 import { useLastUpdatedBooks } from 'hooks/api/use-books';
 import { useSources } from 'hooks/api/use-sources';
 import { MainLayout } from 'layouts/main-layout';
-import { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
-import { BookItem } from './book-item';
+import { BookItem } from 'components/domains/book-item';
 
 const LastBooks = () => {
   const { data } = useLastUpdatedBooks({});
@@ -53,7 +54,7 @@ const LastBooks = () => {
           <BookItem
             key={book.id}
             book={book}
-            onFocusBook={(e) => {
+            onClick={(e) => {
               setFocusedBook({
                 open: true,
                 book,

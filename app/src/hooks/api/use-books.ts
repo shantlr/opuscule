@@ -7,6 +7,13 @@ export const useLastUpdatedBooks = createUseQuery(API.books.list, {
   queryKey: QUERY_KEYS.books.latests({}),
 });
 
+export const useBookmarkedBooks = createUseQuery(API.books.list, {
+  queryKey: QUERY_KEYS.books.bookmarked({}),
+  params: {
+    bookmarked: true,
+  },
+});
+
 export const useBook = createUseQuery(API.books.get, {
   queryKey: ({ id }) => QUERY_KEYS.books.id.details({ bookId: id! }),
   enabled: ({ id }) => !!id,

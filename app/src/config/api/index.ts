@@ -1,3 +1,4 @@
+import { pick } from 'lodash';
 import { ApiBookDetail, ApiBookSummary, ApiChapter, ApiSource } from './types';
 import { del, get, json, post } from './utils';
 
@@ -11,6 +12,7 @@ export const API = {
   books: {
     list: get({
       path: '/books',
+      query: (params: { bookmarked?: boolean }) => pick(params, ['bookmarked']),
       result: json<{ books: ApiBookSummary[] }>,
     }),
 

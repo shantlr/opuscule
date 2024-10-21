@@ -1,6 +1,6 @@
 import { db } from 'data/db';
 import { Book, UserBookState, Chapter } from 'data/schema';
-import { and, desc, eq, inArray } from 'drizzle-orm';
+import { SQL, and, desc, eq, inArray, notInArray } from 'drizzle-orm';
 
 export const BookRepo = {
   get: {
@@ -23,8 +23,27 @@ export const BookRepo = {
         },
       });
     },
-    latestUpdateds: async () => {
+    latestUpdateds: async (query?: { bookmarked?: boolean }) => {
+      const cond: SQL[] = [];
+
+      if (typeof query?.bookmarked === 'boolean') {
+        const bookmarked = await db.query.UserBookState.findMany({
+          where: eq(UserBookState.bookmarked, true),
+        });
+        if (!bookmarked.length) {
+          return [];
+        }
+
+        cond.push(
+          (query?.bookmarked ? inArray : notInArray)(
+            Book.id,
+            bookmarked.map((b) => b.book_id),
+          ),
+        );
+      }
+
       return await db.query.Book.findMany({
+        where: cond.length ? and(...cond) : undefined,
         orderBy: [desc(Book.last_chapter_updated_at)],
         with: {
           sourceBooks: {

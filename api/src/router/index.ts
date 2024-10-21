@@ -82,9 +82,15 @@ router.delete('/sources/:id/subscribe', async (req, res) => {
 
 router.get('/books', async (req, res) => {
   try {
-    // const {} = z.object({}).parse(req.body);
+    const { bookmarked } = z
+      .object({
+        bookmarked: z
+          .union([z.string().transform((v) => v === 'true'), z.boolean()])
+          .optional(),
+      })
+      .parse(req.query);
 
-    const books = await BookRepo.get.latestUpdateds();
+    const books = await BookRepo.get.latestUpdateds({ bookmarked });
     const userStates = await BookRepo.userStates.list(
       books.map((book) => book.id),
     );

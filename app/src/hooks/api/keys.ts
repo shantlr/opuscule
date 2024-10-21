@@ -99,6 +99,9 @@ export const QUERY_KEYS = createKeyTree({
     latests: {
       [K]: 'latests',
     },
+    bookmarked: {
+      [K]: 'bookmarked',
+    },
     id: {
       [K]: ({ bookId }: { bookId: string }) => bookId,
       details: {
