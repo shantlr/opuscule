@@ -101,7 +101,12 @@ router.get('/books', async (req, res) => {
       return {
         ...book,
         bookmarked: stateByBookId[book.id]?.bookmarked ?? false,
-        latests_chapters: sortBy(chapters, (c) => -c.chapter_rank).slice(0, 3),
+        latests_chapters: sortBy(chapters, (c) => -c.chapter_rank)
+          .slice(0, 3)
+          .map(({ userState, ...chapter }) => ({
+            ...chapter,
+            user_state: userState,
+          })),
       };
     });
 

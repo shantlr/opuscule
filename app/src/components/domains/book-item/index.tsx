@@ -53,7 +53,12 @@ export const BookItem = ({
           <ul>
             {book.latests_chapters.map((chapter) => (
               <li
-                className="flex flex-col mb-1 rounded-xl hover:bg-mainbg px-2 py-1 transition-all cursor-pointer"
+                className={clsx(
+                  'flex flex-col mb-1 rounded-xl hover:bg-mainbg px-2 py-1 transition-all cursor-pointer',
+                  {
+                    'text-grey': chapter.user_state?.read,
+                  },
+                )}
                 key={chapter.id}
               >
                 <a

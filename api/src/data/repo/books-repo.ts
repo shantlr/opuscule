@@ -56,6 +56,9 @@ export const BookRepo = {
                   published_at: true,
                 },
                 orderBy: [desc(Chapter.chapter_rank)],
+                with: {
+                  userState: true,
+                },
                 limit: 3,
               },
             },

@@ -33,6 +33,11 @@ export type ApiChapterSummary = {
   chapter_id: string;
   chapter_rank: number;
   published_at: Date | null;
+  user_state: {
+    percentage: number;
+    page: number;
+    read: boolean;
+  } | null;
 };
 
 export type ApiChapter = {
