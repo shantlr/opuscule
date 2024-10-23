@@ -120,7 +120,7 @@ router.get('/books', async (req, res) => {
 });
 router.get('/books/:id', async (req, res) => {
   try {
-    const book = await BookRepo.get.byIdWithChapters(req.params.id);
+    let book = await BookRepo.get.byIdWithChapters(req.params.id);
     if (!book) {
       return res.status(404).send();
     }
@@ -128,14 +128,20 @@ router.get('/books/:id', async (req, res) => {
     // if details never fetched, fetch it
     if (!book.last_detail_updated_at) {
       await fetchBook(book.id);
-      const updated = await BookRepo.get.byIdWithChapters(book.id);
-      return res.status(200).send({
-        book: updated,
-      });
+      book = await BookRepo.get.byIdWithChapters(book.id);
     }
 
     return res.status(200).send({
-      book,
+      book: {
+        ...book,
+        sourceBooks: book?.sourceBooks.map((sb) => ({
+          ...sb,
+          chapters: sb.chapters.map(({ userState, ...chapter }) => ({
+            ...chapter,
+            user_state: userState,
+          })),
+        })),
+      },
     });
   } catch (err) {
     console.error(err);

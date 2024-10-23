@@ -17,6 +17,16 @@ export const BookRepo = {
             with: {
               chapters: {
                 orderBy: [desc(Chapter.chapter_rank)],
+                columns: {
+                  id: true,
+                  chapter_id: true,
+                  chapter_rank: true,
+                  source_id: true,
+                  published_at: true,
+                },
+                with: {
+                  userState: true,
+                },
               },
             },
           },

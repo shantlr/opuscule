@@ -1,10 +1,10 @@
-import { Button } from 'components/interactions/button';
 import { useBook, useBookRefetch } from 'hooks/api/use-books';
 import { flatMap, groupBy, map, sortBy } from 'lodash';
 import { useMemo } from 'react';
 import { dayjs } from 'config/dayjs';
 import { ButtonIcon } from 'components/interactions/button-icon';
 import { RefreshCw } from 'lucide-react';
+import clsx from 'clsx';
 
 export const ContentBookDetails = ({ bookId }: { bookId?: string }) => {
   const { data } = useBook({
@@ -52,7 +52,12 @@ export const ContentBookDetails = ({ bookId }: { bookId?: string }) => {
       <ul className="h-full w-full">
         {chapters?.map((chapter) => (
           <li key={chapter.id}>
-            <a href={`/book/${data?.book?.id}/chapter/${chapter.id}`}>
+            <a
+              className={clsx({
+                'text-grey': chapter.user_state?.read,
+              })}
+              href={`/book/${data?.book?.id}/chapter/${chapter.id}`}
+            >
               <span>Chapter {chapter.chapter_rank}</span>
               <span>
                 -{' '}
