@@ -1,5 +1,5 @@
 import { db } from 'data/db';
-import { Book, UserBookState, Chapter } from 'data/schema';
+import { Book, UserBookState, Chapter, UserChapterState } from 'data/schema';
 import { SQL, and, desc, eq, inArray, notInArray } from 'drizzle-orm';
 
 export const BookRepo = {
@@ -71,8 +71,41 @@ export const BookRepo = {
           where: eq(Chapter.id, id),
         });
       },
+      byIdWithReadProgress: async (id: string) => {
+        return db.query.Chapter.findFirst({
+          where: eq(Chapter.id, id),
+          with: {
+            userState: true,
+          },
+        });
+      },
     },
     updates: {
+      readProgress: async ({
+        chapterId,
+        percentage,
+        page,
+      }: {
+        chapterId: string;
+        percentage: number;
+        page: number;
+      }) => {
+        await db
+          .insert(UserChapterState)
+          .values({
+            chapter_id: chapterId,
+            percentage,
+            current_page: page,
+          })
+          .onConflictDoUpdate({
+            target: UserChapterState.chapter_id,
+            set: {
+              percentage,
+              current_page: page,
+              read: percentage >= 0.99,
+            },
+          });
+      },
       pages: async ({
         sourceBookId,
         sourceChapterId,

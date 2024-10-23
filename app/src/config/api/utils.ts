@@ -2,6 +2,8 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 
 export const json = <T>(response: Response) => response.json() as Promise<T>;
 
+export const identity = <T>(value: T) => value;
+
 type FetchConfg<Args, Result, Query = unknown, Body = unknown> = {
   path: string | ((args: Args) => string);
   body?: (args: Args) => Body;
@@ -76,6 +78,14 @@ export const post = <Args, Result, Body, Query>(
   baseCreateFetcher({
     ...config,
     method: 'POST',
+  });
+
+export const put = <Args, Result, Body, Query>(
+  config: FetchConfg<Args, Result, Body, Query>,
+) =>
+  baseCreateFetcher({
+    ...config,
+    method: 'PUT',
   });
 
 export const del = <Args, Result, Body, Query>(

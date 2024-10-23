@@ -47,3 +47,7 @@ export const useUnbookmarkBook = createUseMutation(API.books.unbookmark, {
     queryClient.invalidateQueries(QUERY_KEYS.books({}));
   },
 });
+
+export const useSaveReadProgress = createUseMutation(
+  API.books.chapters.saveReadProgress,
+);

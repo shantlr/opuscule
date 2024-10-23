@@ -7,7 +7,7 @@ import { BookRepo } from 'data/repo/books-repo';
 import { fetchBook } from 'lib/cron-jobs/fetch-book';
 import { fetchChapter } from 'lib/cron-jobs/fetch-chapter';
 import dayjs from 'dayjs';
-import { keyBy, sortBy } from 'lodash';
+import { keyBy, omit, sortBy } from 'lodash';
 
 export const router = Router();
 
@@ -204,7 +204,9 @@ router.delete('/books/:id/bookmark', async (req, res) => {
 
 router.get('/books/:bookId/chapter/:chapterId', async (req, res) => {
   try {
-    const chapter = await BookRepo.chapters.get.byId(req.params.chapterId);
+    const chapter = await BookRepo.chapters.get.byIdWithReadProgress(
+      req.params.chapterId,
+    );
 
     if (!chapter) {
       return res.status(404).send();
@@ -221,8 +223,31 @@ router.get('/books/:bookId/chapter/:chapterId', async (req, res) => {
     }
 
     return res.status(200).send({
-      chapter,
+      chapter: omit(chapter, 'userState'),
+      user_state: chapter.userState,
     });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send();
+  }
+});
+
+router.put(`/chapters/:id/read-progress`, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { percentage, page } = z
+      .object({
+        percentage: z.number(),
+        page: z.number(),
+      })
+      .parse(req.body);
+
+    await BookRepo.chapters.updates.readProgress({
+      chapterId: id,
+      percentage,
+      page,
+    });
+    return res.status(200).send({});
   } catch (err) {
     console.error(err);
     return res.status(500).send();

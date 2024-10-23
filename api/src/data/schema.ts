@@ -119,6 +119,19 @@ export const UserBookState = sqliteTable(
   }),
 );
 
+export const UserChapterState = sqliteTable(
+  'user_chapter_states',
+  {
+    chapter_id: text('chapter_id').notNull(),
+    read: integer('read', { mode: 'boolean' }).$defaultFn(() => false),
+    percentage: real('percentage').$defaultFn(() => 0),
+    current_page: integer('current_page').$defaultFn(() => 0),
+  },
+  (t) => ({
+    unique: unique('unique_user_chapter_state').on(t.chapter_id),
+  }),
+);
+
 export const Source = sqliteTable('sources', {
   id: text('id').primaryKey(),
   last_fetched_latests_at: integer('last_fetch', { mode: 'timestamp_ms' }),
@@ -188,6 +201,18 @@ export const chapterRelations = relations(Chapter, (rel) => ({
     relationName: 'sourceBook',
     fields: [Chapter.source_book_id],
     references: [SourceBook.source_book_id],
+  }),
+  userState: rel.one(UserChapterState, {
+    relationName: 'chapter',
+    fields: [Chapter.id],
+    references: [UserChapterState.chapter_id],
+  }),
+}));
+export const userChapterStateRelations = relations(UserChapterState, (rel) => ({
+  chapter: rel.one(Chapter, {
+    relationName: 'chapter',
+    fields: [UserChapterState.chapter_id],
+    references: [Chapter.id],
   }),
 }));
 

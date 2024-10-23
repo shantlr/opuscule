@@ -1,6 +1,6 @@
-import { pick } from 'lodash';
+import { omit, pick } from 'lodash';
 import { ApiBookDetail, ApiBookSummary, ApiChapter, ApiSource } from './types';
-import { del, get, json, post } from './utils';
+import { del, get, json, post, put } from './utils';
 
 export const API = {
   sources: {
@@ -42,7 +42,23 @@ export const API = {
           `/books/${bookId}/chapter/${chapterId}`,
         result: json<{
           chapter: ApiChapter;
+          user_state?: {
+            current_page: number;
+            percentage: number;
+            read: boolean;
+          };
         }>,
+      }),
+      saveReadProgress: put({
+        path: ({
+          chapterId,
+        }: {
+          chapterId: string;
+          percentage: number;
+          page: number;
+        }) => `/chapters/${chapterId}/read-progress`,
+        body: (arg) => omit(arg, ['chapterId']),
+        result: json<Record<never, never>>,
       }),
     },
   },
