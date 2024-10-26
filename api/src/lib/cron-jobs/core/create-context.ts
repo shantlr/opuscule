@@ -14,6 +14,8 @@ import got, { HTTPError, OptionsInit, OptionsOfTextResponseBody } from 'got';
 import { CookieJar } from 'tough-cookie';
 import { BookRepo } from 'data/repo/books-repo';
 import { ACCURACY } from 'config/constants';
+import { defaultLogger } from 'config/logger';
+import { Logger } from 'pino';
 
 export const createPage = ({ data }: { data: string }): FetchPage => {
   const $ = cheerio.load(data);
@@ -22,7 +24,6 @@ export const createPage = ({ data }: { data: string }): FetchPage => {
       return execOperations($, op);
     },
   };
-  console.log('DQSDQSD');
 
   return page;
 };
@@ -31,6 +32,7 @@ const createFetcher = async (
   session: NonNullable<
     Awaited<ReturnType<(typeof FetchSessionRepo)['get']['byKey']>>
   >,
+  logger = defaultLogger,
 ) => {
   const cookieJar = new CookieJar();
 
@@ -47,7 +49,7 @@ const createFetcher = async (
       const cacheKey = `${session.key}:${url}`;
       const cacheData = await HtmlCacheRepo.get(cacheKey);
       if (cacheData?.data) {
-        console.log(`[fetcher-session] resolved page from cache '${cacheKey}'`);
+        logger.info(`[fetcher-session] resolved page from cache '${cacheKey}'`);
         return cacheData.data;
       }
 
@@ -58,7 +60,7 @@ const createFetcher = async (
           'User-Agent': session.user_agent,
         },
       });
-      console.log(`[fetcher-session] fetched page '${url}': ${res.statusCode}`);
+      logger.info(`[fetcher-session] fetched page '${url}': ${res.statusCode}`);
 
       await HtmlCacheRepo.create(cacheKey, res.body, res.statusCode);
 
@@ -66,9 +68,6 @@ const createFetcher = async (
     },
     stream(url: string, options?: OptionsInit) {
       try {
-        console.log('sTREAM', url);
-        console.group('DEFAULT', instance.defaults.options);
-
         return instance.stream(url, {
           headers: {
             // 'User-Agent': session.user_agent,
@@ -77,7 +76,7 @@ const createFetcher = async (
           },
         });
       } catch (err) {
-        console.log('>>>>>>>>>>>>>>>>>>>>>>>>');
+        logger.info('>>>>>>>>>>>>>>>>>>>>>>>>');
         throw err;
       }
     },
@@ -88,6 +87,7 @@ export const createFetcherSession = async (
   sessionId: string,
   prevSession: Awaited<ReturnType<(typeof FetchSessionRepo)['get']['byKey']>>,
   options: Parameters<SourceContext['initFetcherSession']>[0],
+  logger = defaultLogger,
 ): Promise<FetcherSession> => {
   let currentFetchSession = prevSession;
 
@@ -96,7 +96,7 @@ export const createFetcherSession = async (
     : null;
 
   if (currentFetchSession && fetcher) {
-    console.log(`[fetcher-session] reusing session '${sessionId}'`);
+    logger.info(`[fetcher-session] reusing session '${sessionId}'`);
   }
 
   const session: FetcherSession = {
@@ -106,14 +106,13 @@ export const createFetcherSession = async (
       try {
         if (fetcher) {
           const res = await fetcher.fetch(url);
-          console.log('>>>');
           return createPage({
             data: res,
           });
         }
 
         // start new session
-        console.log(`[fetcher-session] starting new session for '${url}'`);
+        logger.info(`[fetcher-session] starting new session for '${url}'`);
         const flareRes = await startSession({ url });
         currentFetchSession = await FetchSessionRepo.create({
           key: sessionId,
@@ -137,7 +136,7 @@ export const createFetcherSession = async (
       } catch (err) {
         if (err instanceof HTTPError) {
           if (err.response.statusCode === 403) {
-            console.log(
+            logger.info(
               `[fetcher-session] got 403 while fetching ${url}, deleting session`,
             );
             await FetchSessionRepo.delete(sessionId);
@@ -156,8 +155,10 @@ export const createFetcherSession = async (
 
 export const createContext = ({
   sourceId,
+  logger = defaultLogger,
 }: {
   sourceId: string;
+  logger?: Logger;
 }): SourceContext => {
   const source = Sources.find((s) => s.id === sourceId);
   if (!source) {
@@ -165,6 +166,7 @@ export const createContext = ({
   }
 
   const context: SourceContext = {
+    logger,
     initFetcherSession: async (options) => {
       const sessionId = options?.sessionId ?? sourceId;
       const prevSession = !options?.ignorePrevSession
@@ -221,7 +223,7 @@ export const createContext = ({
           }
 
           if (!item.coverUrl) {
-            console.log(`[book-upsert] ${sourceId}/${item.id} no cover found`);
+            logger.info(`[book-upsert] ${sourceId}/${item.id} no cover found`);
           }
 
           if (
@@ -240,7 +242,7 @@ export const createContext = ({
 
         await SourceRepo.books.creates(sourceId, missings);
         await SourceRepo.books.updates(sourceId, toUpdate);
-        console.log(
+        logger.info(
           `[book-upsert] ${items.length} input items | ${missings.length} created | ${toUpdate.length} updated`,
         );
         //#endregion
@@ -257,7 +259,7 @@ export const createContext = ({
             })),
         );
         await fetchPictures(coverToFetches);
-        console.log(`[book-upsert] ${coverToFetches.length} covers fetched`);
+        logger.info(`[book-upsert] ${coverToFetches.length} covers fetched`);
         //#endregion
 
         await SourceRepo.books.syncBooks(
@@ -328,7 +330,7 @@ export const createContext = ({
                   : `chapters ${sorted[0].id}..${sorted.at(-1)?.id} created`;
 
             if (toCreate.length) {
-              console.log(`[book-upsert] ${sourceId}/${sourceBook.id} ${msg}`);
+              logger.info(`[book-upsert] ${sourceId}/${sourceBook.id} ${msg}`);
             }
           }
         }

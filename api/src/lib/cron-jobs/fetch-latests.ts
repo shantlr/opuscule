@@ -2,6 +2,8 @@ import { SourceRepo } from 'data/repo/source';
 import { SourcesByID } from 'sources';
 import { createContext } from './core/create-context';
 import { formatDuration } from 'lib/utils/format-duration';
+import { Logger } from 'pino';
+import { defaultLogger } from 'config/logger';
 
 const sourceStates: Record<
   string,
@@ -11,35 +13,41 @@ const sourceStates: Record<
   }
 > = {};
 
-export const fetchLatests = async (opt?: { force: boolean }) => {
+export const fetchLatests = async ({
+  logger = defaultLogger,
+  ...opt
+}: {
+  force?: boolean;
+  logger?: Logger;
+} = {}) => {
   const sources = await SourceRepo.get.sourceToFetchLatests({
     force: opt?.force,
   });
-  console.log(`[fetch-latests] starting, sources=${sources.length}`);
+  logger.info(`[fetch-latests] starting, sources=${sources.length}`);
 
   for (const { id } of sources) {
     const source = SourcesByID[id];
     if (!source) {
-      console.warn(`[fetch-latests] Source '${id}' not found`);
+      logger.warn(`[fetch-latests] Source '${id}' not found`);
       continue;
     }
 
     const minDate = sourceStates[id]?.minRetryAt;
 
     if (minDate && Date.now() < minDate.valueOf()) {
-      console.log(
+      logger.info(
         `[fetch-latests] source '${id}' - skipped (next_retry_at=${minDate.toISOString()})`,
       );
       continue;
     }
 
     try {
-      console.log(`[fetch-latests] source '${id}' - started`);
+      logger.info(`[fetch-latests] source '${id}' - started`);
       const start = Date.now();
       const context = createContext({ sourceId: id });
       await source.entries.fetchLatests(context);
       const end = Date.now();
-      console.log(
+      logger.info(
         `[fetch-latests] source '${id}' - done (duration=${formatDuration(end - start)})`,
       );
       delete sourceStates[id];
@@ -50,7 +58,7 @@ export const fetchLatests = async (opt?: { force: boolean }) => {
       const nextRetryAt = new Date(
         Date.now() + 2 * (retryCount + 1) * 30 * 60 * 1000,
       );
-      console.log(
+      logger.info(
         `[fetch-latests] source '${id}' failed (next_retry_at: ${nextRetryAt.toISOString()}):`,
         err,
       );
@@ -60,5 +68,5 @@ export const fetchLatests = async (opt?: { force: boolean }) => {
       };
     }
   }
-  console.log(`[fetch-latests] done`);
+  logger.info(`[fetch-latests] done`);
 };

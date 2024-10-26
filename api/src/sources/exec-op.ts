@@ -1,11 +1,13 @@
 import { optional } from 'zod';
 import { Op, OpOutput, Query } from './types';
+import { logger } from 'config/logger';
+import type * as cheerio from 'cheerio';
 
 const getElem = (
-  $: cheerio.Root,
+  $: cheerio.CheerioAPI,
   selector: Query | undefined,
-  context?: cheerio.Element | cheerio.Cheerio,
-): cheerio.Cheerio => {
+  context?: cheerio.Cheerio<any>,
+): cheerio.Cheerio<any> => {
   if (!selector) {
     if (!context) {
       return $.root();
@@ -28,6 +30,8 @@ const getElem = (
 
   if (Array.isArray(selector.or)) {
     const elems = selector.or.map((o) => getElem($, o, currentContext));
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     return $(elems);
   }
 
@@ -35,12 +39,12 @@ const getElem = (
 };
 
 export const execOperations = <O extends Op>(
-  $: cheerio.Root,
+  $: cheerio.CheerioAPI,
   op: O,
   {
     context,
   }: {
-    context?: cheerio.Element | cheerio.Cheerio;
+    context?: cheerio.Cheerio<any>;
   } = {},
 ): OpOutput<O> => {
   switch (op.type) {
@@ -63,7 +67,7 @@ export const execOperations = <O extends Op>(
           throw new Error(`[exec-op] elem matching '${op.query}' not found`);
         }
 
-        console.warn(`[exec-op] elem matching '${op.query}' not found`);
+        logger.warn(`[exec-op] elem matching '${op.query}' not found`);
       }
       return elem.attr(op.name) as any;
     }

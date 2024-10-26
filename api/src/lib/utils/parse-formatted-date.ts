@@ -1,3 +1,5 @@
+import { logger } from 'config/logger';
+
 const MONTH = {
   January: 0,
   Jan: 0,
@@ -51,5 +53,5 @@ export const parseFullFormattedDate = (date: string) => {
     }
   }
 
-  console.warn(`[parseFullFormattedDate] failed to parse date: ${date}`);
+  logger.warn(`[parseFullFormattedDate] failed to parse date: ${date}`);
 };

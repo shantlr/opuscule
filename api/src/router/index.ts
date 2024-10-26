@@ -8,6 +8,7 @@ import { fetchBook } from 'lib/cron-jobs/fetch-book';
 import { fetchChapter } from 'lib/cron-jobs/fetch-chapter';
 import dayjs from 'dayjs';
 import { keyBy, omit, sortBy } from 'lodash';
+import { logger } from 'config/logger';
 
 export const router = Router();
 
@@ -24,7 +25,7 @@ router.get('/sources', async (req, res) => {
       })),
     );
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     return res.status(500).send();
   }
 });
@@ -46,9 +47,9 @@ router.post('/sources/subscribe', async (req, res) => {
     }
 
     await SourceRepo.updates.subscribe(id);
-    console.log(`[fetch-source-latests] ${source.id} started (from=subscribe)`);
+    logger.info(`[fetch-source-latests] ${source.id} started (from=subscribe)`);
     void fetchSourceLatests(source!).catch((err) => {
-      console.error(
+      logger.error(
         `[fetch-source-latests] ${source!.id} failed (from=subscribe)`,
         err,
       );
@@ -58,7 +59,7 @@ router.post('/sources/subscribe', async (req, res) => {
       success: true,
     });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     return res.status(500).send({
       success: false,
     });
@@ -73,7 +74,7 @@ router.delete('/sources/:id/subscribe', async (req, res) => {
       success: true,
     });
   } catch (err) {
-    console.log(err);
+    logger.info(err);
     return res.status(500).send({
       success: false,
     });
@@ -114,7 +115,7 @@ router.get('/books', async (req, res) => {
       books: mappedBooks,
     });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     return res.status(500).send();
   }
 });
@@ -144,7 +145,7 @@ router.get('/books/:id', async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     return res.status(500).send();
   }
 });
@@ -171,7 +172,7 @@ router.post('/books/:id/refetch', async (req, res) => {
       book: updated,
     });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     return res.status(500).send();
   }
 });
@@ -190,7 +191,7 @@ router.post('/books/:id/bookmark', async (req, res) => {
 
     return res.status(200).send({});
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     return res.status(500).send();
   }
 });
@@ -208,7 +209,7 @@ router.delete('/books/:id/bookmark', async (req, res) => {
 
     return res.status(200).send({});
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     return res.status(500).send();
   }
 });
@@ -238,7 +239,7 @@ router.get('/books/:bookId/chapter/:chapterId', async (req, res) => {
       user_state: chapter.userState,
     });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     return res.status(500).send();
   }
 });
@@ -260,7 +261,7 @@ router.put(`/chapters/:id/read-progress`, async (req, res) => {
     });
     return res.status(200).send({});
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     return res.status(500).send();
   }
 });

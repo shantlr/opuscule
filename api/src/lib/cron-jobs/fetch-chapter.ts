@@ -1,18 +1,26 @@
+import { defaultLogger } from 'config/logger';
 import { BookRepo } from 'data/repo/books-repo';
+import { Logger } from 'pino';
 import { Sources, fetchBookChapter } from 'sources';
 
-export const fetchChapter = async ({ chapterId }: { chapterId: string }) => {
+export const fetchChapter = async ({
+  chapterId,
+  logger = defaultLogger,
+}: {
+  chapterId: string;
+  logger?: Logger;
+}) => {
   const chapter = await BookRepo.chapters.get.byId(chapterId);
-  console.log(`[fetch-chapter] ${chapterId} started`);
+  logger.info(`[fetch-chapter] ${chapterId} started`);
 
   if (!chapter) {
-    console.error(`Chapter not found: ${chapterId}`);
+    logger.error(`Chapter not found: ${chapterId}`);
     return;
   }
 
   const source = Sources.find((s) => s.id === chapter.source_id);
   if (!source) {
-    console.error(`Source not found: ${chapter.source_id}`);
+    logger.error(`Source not found: ${chapter.source_id}`);
     return;
   }
 

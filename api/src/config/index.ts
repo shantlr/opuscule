@@ -2,6 +2,10 @@ import convict from 'convict';
 
 export const config = convict({
   service: {
+    name: {
+      env: 'SERVICE_NAME',
+      default: 'api',
+    },
     port: {
       env: 'SERVICE_PORT',
       default: 4560,

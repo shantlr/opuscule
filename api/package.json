@@ -6,7 +6,8 @@
     "node": "20.12.2"
   },
   "scripts": {
-    "dev": "nodemon --exec vite-node ./src/index.ts",
+    "dev": "nodemon --exec vite-node ./src/index.ts | pino-grove",
+    "ts-check": "tsc --noEmit",
     "migrate:make": "drizzle-kit generate"
   },
   "devDependencies": {
@@ -25,6 +26,7 @@
     "eslint-plugin-prettier": "^5.2.1",
     "globals": "^15.9.0",
     "nodemon": "^3.1.7",
+    "pino-grove": "^0.0.0",
     "prettier": "^3.3.3",
     "tsx": "^4.17.0",
     "typescript": "^5.6.2",
@@ -48,6 +50,7 @@
     "lodash": "^4.17.21",
     "minio": "^8.0.1",
     "nanoid": "^5.0.7",
+    "pino": "^9.5.0",
     "sharp": "^0.33.5",
     "tough-cookie": "^5.0.0",
     "zod": "^3.23.8"

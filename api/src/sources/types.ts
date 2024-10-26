@@ -1,4 +1,5 @@
 import { Request as GotRequest, OptionsInit } from 'got';
+import { Logger } from 'pino';
 
 export type Op = OpText | OpMap | OpAttr | OpExist | OpObject;
 
@@ -68,6 +69,7 @@ export type FetcherSession = {
 };
 
 export type SourceContext = {
+  logger: Logger;
   initFetcherSession: (options?: {
     /**
      * @default context sourceId

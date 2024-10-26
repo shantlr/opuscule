@@ -1,7 +1,8 @@
+import { logger } from 'config/logger';
 import { Request } from 'got';
 
 export const describeRequest = (request: Request) => {
-  console.log('debug::request', {
+  logger.info('debug::request', {
     url: request.requestUrl,
     method: request.options.method,
     headers: request.options.headers,

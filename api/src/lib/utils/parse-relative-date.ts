@@ -1,3 +1,4 @@
+import { logger } from 'config/logger';
 import dayjs from 'dayjs';
 
 export const parseFormattedRelativeDate = (date: string) => {
@@ -38,6 +39,6 @@ export const parseFormattedRelativeDate = (date: string) => {
     }
   }
 
-  console.warn('Failed to parse date:', date);
+  logger.warn('Failed to parse date:', date);
   return null;
 };

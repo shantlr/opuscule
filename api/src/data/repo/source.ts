@@ -6,6 +6,7 @@ import { maxBy, partition } from 'lodash';
 import { BookRepo } from './books-repo.js';
 import { ACCURACY } from 'config/constants.js';
 import { GlobalSettingsRepo } from './global-settings.js';
+import { defaultLogger } from 'config/logger.js';
 
 export const SourceRepo = {
   get: {
@@ -44,7 +45,7 @@ export const SourceRepo = {
   },
 
   updates: {
-    subscribe: async (sourceId: string) => {
+    subscribe: async (sourceId: string, logger = defaultLogger) => {
       await db.transaction(async (t) => {
         if (!Sources.find((s) => s.id === sourceId)) {
           throw new Error(`UNKNOWN_SOURCE`);
@@ -61,9 +62,9 @@ export const SourceRepo = {
           last_fetched_latests_at: null,
         });
       });
-      console.log(`[source] subscribed: ${sourceId}`);
+      logger.info(`[source] subscribed: ${sourceId}`);
     },
-    unsubscribe: async (sourceId: string) => {
+    unsubscribe: async (sourceId: string, logger = defaultLogger) => {
       await db.transaction(async (t) => {
         const existing = await t.query.Source.findFirst({
           where: eq(Source.id, sourceId),
@@ -72,7 +73,7 @@ export const SourceRepo = {
           await t.delete(Source).where(eq(Source.id, sourceId));
         }
       });
-      console.log(`[source] unsubscribed: ${sourceId}`);
+      logger.info(`[source] unsubscribed: ${sourceId}`);
     },
     fetchLatests: {
       done: async (sourceId: string) => {
@@ -328,12 +329,16 @@ export const SourceRepo = {
           );
       });
     },
-    syncBooks: async (sourceId: string, ids: string[]) => {
+    syncBooks: async (
+      sourceId: string,
+      ids: string[],
+      logger = defaultLogger,
+    ) => {
       if (!ids.length) {
         return;
       }
 
-      console.log(`[source-book] sync books: ${sourceId}/${ids.join(',')}`);
+      logger.info(`[source-book] sync books: ${sourceId}/${ids.join(',')}`);
 
       const sourceBooks = await db.query.SourceBook.findMany({
         where: inArray(SourceBook.source_book_id, ids),
@@ -345,7 +350,7 @@ export const SourceRepo = {
 
       for (const sb of withoutBooks) {
         await SourceRepo.books.createAssociatedBook(sb);
-        console.log(
+        logger.info(
           `[source-book] associated book created: ${sb.source_id}/${sb.source_book_id}`,
         );
       }

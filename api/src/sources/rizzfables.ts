@@ -132,8 +132,6 @@ export const sourceRizzfables = {
         .array()
         .parse(items);
 
-      // console.log(JSON.stringify(items, null, 2));
-      // console.log(JSON.stringify(parsedItems, null, 2));
       await context.books.upsert(
         parsedItems.map((item) => ({
           ...item,
@@ -154,7 +152,7 @@ export const sourceRizzfables = {
           sourceBookId,
         );
         if (!sourceBook) {
-          console.log(
+          context.logger.info(
             `[source-book-details] source book not found: ${sourceBookId}`,
           );
           return;
@@ -252,7 +250,7 @@ export const sourceRizzfables = {
           sourceBookId,
         );
         if (!sourceBook) {
-          console.log(
+          context.logger.info(
             `[source-book-chapter] source book not found: ${sourceBookId}`,
           );
           return;

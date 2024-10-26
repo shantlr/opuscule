@@ -8,6 +8,7 @@ import { setupCronJobs } from './lib/cron-jobs';
 import { router } from 'router';
 import { config } from 'config';
 import bodyParser from 'body-parser';
+import { logger } from 'config/logger';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
@@ -15,7 +16,7 @@ const main = async () => {
   await migrate(db, {
     migrationsFolder: path.resolve(__dirname, '../drizzle'),
   });
-  console.log('DB migrated');
+  logger.info(`[startup] db migrated`);
 
   await checkGlobalSettings();
   await setupCronJobs();
@@ -31,13 +32,13 @@ const main = async () => {
   app.use(router);
 
   app.listen(config.get('service.port'), () => {
-    console.log(
-      `Api started on http://localhost:${config.get('service.port')}`,
+    logger.info(
+      `[startup] api started on http://localhost:${config.get('service.port')}`,
     );
   });
 };
 
 main().catch((err) => {
-  console.error(err);
+  logger.error(err, `main failed`);
   process.exit(1);
 });

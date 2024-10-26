@@ -5,6 +5,8 @@ import { SourceRepo } from 'data/repo/source';
 import sharp from 'sharp';
 import { BookRepo } from 'data/repo/books-repo';
 import { WebStreamToNodeStream } from 'lib/utils/stream/readablestream-to-readable';
+import { Logger } from 'pino';
+import { defaultLogger } from 'config/logger';
 
 export type FetchPictureJob =
   | {
@@ -23,7 +25,14 @@ export type FetchPictureJob =
       }[];
     };
 
-export const fetchPictures = async (jobs: FetchPictureJob[]) => {
+export const fetchPictures = async (
+  jobs: FetchPictureJob[],
+  {
+    logger = defaultLogger,
+  }: {
+    logger?: Logger;
+  } = {},
+) => {
   for (const job of jobs) {
     switch (job.type) {
       case 'source_book_cover': {
@@ -59,7 +68,7 @@ export const fetchPictures = async (jobs: FetchPictureJob[]) => {
           coverUrl: uploadRes.Location!,
           coverOriginUrl: job.img_url,
         });
-        console.log(
+        logger.info(
           `[fetch-picture] Book cover updated for ${job.source_id}/${job.source_book_id}`,
         );
         continue;
@@ -107,7 +116,7 @@ export const fetchPictures = async (jobs: FetchPictureJob[]) => {
           sourceChapterId: job.source_chapter_id,
           pages: uploadedPages,
         });
-        console.log(
+        logger.info(
           `[fetch-picture] Chapter pages updated for ${job.source_id}/${job.source_book_id}/${job.source_chapter_id}`,
         );
         return;
