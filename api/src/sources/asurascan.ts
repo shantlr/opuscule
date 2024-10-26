@@ -124,7 +124,7 @@ export const sourceAsuraScan = {
 
         const session = await context.initFetcherSession();
         const page = await session.go(`/series/${sourceBook?.source_book_key}`);
-        const res = await page.map({
+        const res = page.map({
           type: 'object',
           fields: {
             title: {

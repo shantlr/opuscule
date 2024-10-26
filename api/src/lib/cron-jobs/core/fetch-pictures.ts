@@ -2,9 +2,9 @@ import { config } from 'config';
 import { s3client } from 'lib/s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { SourceRepo } from 'data/repo/source';
-import got from 'got';
 import sharp from 'sharp';
 import { BookRepo } from 'data/repo/books-repo';
+import { WebStreamToNodeStream } from 'lib/utils/stream/readablestream-to-readable';
 
 export type FetchPictureJob =
   | {
@@ -71,8 +71,11 @@ export const fetchPictures = async (jobs: FetchPictureJob[]) => {
           height: number;
         }[] = [];
         for (const [index, page] of job.pages.entries()) {
-          const res = got.stream(page.url);
+          const test = await fetch(page.url, {
+            method: 'GET',
+          });
 
+          const res = WebStreamToNodeStream(test.body!);
           let ext = page.url.split('.').pop();
           ext = ext ? `.${ext}` : '';
 
@@ -98,9 +101,6 @@ export const fetchPictures = async (jobs: FetchPictureJob[]) => {
             width: meta.width!,
             height: meta.height!,
           });
-          // console.log(
-          //   `[fetch-picture] Chapter page fetched for ${job.source_id}/${job.source_book_id}/${job.source_chapter_id}`,
-          // );
         }
         await BookRepo.chapters.updates.pages({
           sourceBookId: job.source_book_id,

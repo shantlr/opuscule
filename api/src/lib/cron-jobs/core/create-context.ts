@@ -10,7 +10,7 @@ import { keyBy, sortBy, uniq } from 'lodash';
 import { FetchPictureJob, fetchPictures } from './fetch-pictures';
 import { Sources } from 'sources';
 import { formatCookie } from 'lib/utils/format-cookies';
-import got, { OptionsOfTextResponseBody } from 'got';
+import got, { HTTPError, OptionsInit, OptionsOfTextResponseBody } from 'got';
 import { CookieJar } from 'tough-cookie';
 import { BookRepo } from 'data/repo/books-repo';
 import { ACCURACY } from 'config/constants';
@@ -22,6 +22,7 @@ export const createPage = ({ data }: { data: string }): FetchPage => {
       return execOperations($, op);
     },
   };
+  console.log('DQSDQSD');
 
   return page;
 };
@@ -38,7 +39,7 @@ const createFetcher = async (
   }
 
   const instance = got.extend({
-    cookieJar,
+    // cookieJar,
   });
 
   return {
@@ -57,10 +58,28 @@ const createFetcher = async (
           'User-Agent': session.user_agent,
         },
       });
+      console.log(`[fetcher-session] fetched page '${url}': ${res.statusCode}`);
 
       await HtmlCacheRepo.create(cacheKey, res.body, res.statusCode);
 
       return res.body;
+    },
+    stream(url: string, options?: OptionsInit) {
+      try {
+        console.log('sTREAM', url);
+        console.group('DEFAULT', instance.defaults.options);
+
+        return instance.stream(url, {
+          headers: {
+            // 'User-Agent': session.user_agent,
+            'user-agent': undefined,
+            ...options?.headers,
+          },
+        });
+      } catch (err) {
+        console.log('>>>>>>>>>>>>>>>>>>>>>>>>');
+        throw err;
+      }
     },
   };
 };
@@ -84,36 +103,52 @@ export const createFetcherSession = async (
     go: async (path: string) => {
       const url = options?.baseUrl ? joinUrl(options.baseUrl, path) : path;
 
-      if (fetcher) {
-        const res = await fetcher.fetch(url);
-        console.log(`[fetcher-session] fetched page '${url}'`);
-        return createPage({
-          data: res,
+      try {
+        if (fetcher) {
+          const res = await fetcher.fetch(url);
+          console.log('>>>');
+          return createPage({
+            data: res,
+          });
+        }
+
+        // start new session
+        console.log(`[fetcher-session] starting new session for '${url}'`);
+        const flareRes = await startSession({ url });
+        currentFetchSession = await FetchSessionRepo.create({
+          key: sessionId,
+          cookies: flareRes.solution.cookies.map((c) => ({
+            ...c,
+            url,
+          })),
+          user_agent: flareRes.solution.userAgent,
         });
+        const cacheKey = `${currentFetchSession.key}:${url}`;
+        await HtmlCacheRepo.create(
+          cacheKey,
+          flareRes.solution.response,
+          flareRes.solution.status,
+        );
+
+        fetcher = await createFetcher(currentFetchSession);
+        return createPage({
+          data: flareRes.solution.response,
+        });
+      } catch (err) {
+        if (err instanceof HTTPError) {
+          if (err.response.statusCode === 403) {
+            console.log(
+              `[fetcher-session] got 403 while fetching ${url}, deleting session`,
+            );
+            await FetchSessionRepo.delete(sessionId);
+          }
+        }
+        throw err;
       }
-
-      // start new session
-      console.log(`[fetcher-session] starting new session for '${url}'`);
-      const flareRes = await startSession({ url });
-      currentFetchSession = await FetchSessionRepo.create({
-        key: sessionId,
-        cookies: flareRes.solution.cookies.map((c) => ({
-          ...c,
-          url,
-        })),
-        user_agent: flareRes.solution.userAgent,
-      });
-      const cacheKey = `${currentFetchSession.key}:${url}`;
-      await HtmlCacheRepo.create(
-        cacheKey,
-        flareRes.solution.response,
-        flareRes.solution.status,
-      );
-
-      fetcher = await createFetcher(currentFetchSession);
-      return createPage({
-        data: flareRes.solution.response,
-      });
+    },
+    stream: (path: string, streamOptions) => {
+      const url = options?.baseUrl ? joinUrl(options.baseUrl, path) : path;
+      return fetcher!.stream(url, streamOptions);
     },
   };
   return session;
@@ -132,7 +167,9 @@ export const createContext = ({
   const context: SourceContext = {
     initFetcherSession: async (options) => {
       const sessionId = options?.sessionId ?? sourceId;
-      const prevSession = await FetchSessionRepo.get.byKey(sessionId);
+      const prevSession = !options?.ignorePrevSession
+        ? await FetchSessionRepo.get.byKey(sessionId)
+        : undefined;
       return createFetcherSession(sessionId, prevSession, {
         ...options,
         baseUrl: options?.baseUrl ?? source.url,
@@ -140,6 +177,7 @@ export const createContext = ({
     },
     books: {
       upsert: async (items) => {
+        await SourceRepo.ensureCreated(sourceId);
         const itemsById = keyBy(items, (i) => i.id);
 
         //#region Book upsert

@@ -21,4 +21,7 @@ export const FetchSessionRepo = {
       });
     return inserted;
   },
+  delete: async (key: string) => {
+    await db.delete(FetchSession).where(eq(FetchSession.key, key));
+  },
 };

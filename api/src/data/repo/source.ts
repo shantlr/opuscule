@@ -31,6 +31,18 @@ export const SourceRepo = {
     },
   },
 
+  ensureCreated: async (sourceId: string) => {
+    await db
+      .insert(Source)
+      .values({
+        id: sourceId,
+        last_fetched_latests_at: null,
+      })
+      .onConflictDoNothing({
+        target: [Source.id],
+      });
+  },
+
   updates: {
     subscribe: async (sourceId: string) => {
       await db.transaction(async (t) => {

@@ -100,6 +100,7 @@ export const Chapter = sqliteTable(
       name: 'source_book_ref',
     }),
     uniq: unique('unique_source_chapter').on(
+      table.source_id,
       table.source_book_id,
       table.chapter_id,
     ),
@@ -134,6 +135,9 @@ export const UserChapterState = sqliteTable(
 
 export const Source = sqliteTable('sources', {
   id: text('id').primaryKey(),
+  subscribed: integer('subscribed', { mode: 'boolean' }).$defaultFn(
+    () => false,
+  ),
   last_fetched_latests_at: integer('last_fetch', { mode: 'timestamp_ms' }),
 });
 export const SourceBook = sqliteTable(

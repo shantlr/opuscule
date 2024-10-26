@@ -1,3 +1,5 @@
+import { Request as GotRequest, OptionsInit } from 'got';
+
 export type Op = OpText | OpMap | OpAttr | OpExist | OpObject;
 
 export type Query =
@@ -62,6 +64,7 @@ export type FetchPage = {
 };
 export type FetcherSession = {
   go: (url: string) => Promise<FetchPage>;
+  stream: (url: string, options?: OptionsInit) => GotRequest;
 };
 
 export type SourceContext = {
@@ -71,6 +74,7 @@ export type SourceContext = {
      */
     sessionId?: string;
     baseUrl?: string;
+    ignorePrevSession?: boolean;
   }) => Promise<FetcherSession>;
 
   books: {

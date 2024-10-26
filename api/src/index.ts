@@ -8,10 +8,6 @@ import { setupCronJobs } from './lib/cron-jobs';
 import { router } from 'router';
 import { config } from 'config';
 import bodyParser from 'body-parser';
-import { fetchSourceLatests } from 'sources';
-import { sourceAsuraScan } from 'sources/asurascan';
-// import { fetchBookDetails } from 'sources';
-// import { sourceAsuraScan } from 'sources/asurascan';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
@@ -25,8 +21,6 @@ const main = async () => {
   await setupCronJobs();
 
   const app = express();
-
-  // await fetchBookDetails(sourceAsuraScan, 'necromancers-evolutionary-traits');
 
   app.use(
     cors({

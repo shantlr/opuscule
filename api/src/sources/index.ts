@@ -2,8 +2,9 @@ import { keyBy } from 'lodash';
 import { sourceAsuraScan } from './asurascan.js';
 import { ISource } from './types.js';
 import { createContext } from 'lib/cron-jobs/core/create-context';
+import { sourceRizzfables } from './rizzfables.js';
 
-export const Sources = [sourceAsuraScan] satisfies ISource[];
+export const Sources = [sourceAsuraScan, sourceRizzfables] satisfies ISource[];
 
 export const SourcesByID = keyBy(Sources, (s) => s.id);
 
