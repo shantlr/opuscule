@@ -9,14 +9,16 @@ import { router } from 'router';
 import { config } from 'config';
 import bodyParser from 'body-parser';
 import { logger } from 'config/logger';
+import { addLogger } from 'pino-grove/express';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 const main = async () => {
+  const log = logger.scope('startup');
   await migrate(db, {
     migrationsFolder: path.resolve(__dirname, '../drizzle'),
   });
-  logger.info(`[startup] db migrated`);
+  log.info(`db migrated`);
 
   await checkGlobalSettings();
   await setupCronJobs();
@@ -28,13 +30,12 @@ const main = async () => {
       origin: config.get('api.cors.origin'),
     }),
     bodyParser.json(),
+    addLogger(logger),
   );
   app.use(router);
 
   app.listen(config.get('service.port'), () => {
-    logger.info(
-      `[startup] api started on http://localhost:${config.get('service.port')}`,
-    );
+    log.info(`api started on http://localhost:${config.get('service.port')}`);
   });
 };
 

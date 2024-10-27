@@ -3644,7 +3644,7 @@ __metadata:
     nanoid: "npm:^5.0.7"
     nodemon: "npm:^3.1.7"
     pino: "npm:^9.5.0"
-    pino-grove: "npm:^0.0.0"
+    pino-grove: "npm:^0.0.3"
     prettier: "npm:^3.3.3"
     sharp: "npm:^0.33.5"
     tough-cookie: "npm:^5.0.0"
@@ -7688,15 +7688,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pino-grove@npm:^0.0.0":
-  version: 0.0.0
-  resolution: "pino-grove@npm:0.0.0"
+"pino-grove@npm:^0.0.3":
+  version: 0.0.3
+  resolution: "pino-grove@npm:0.0.3"
   dependencies:
     picocolors: "npm:^1.1.1"
     split2: "npm:^4.2.0"
   bin:
     pino-grove: bin/cli.mjs
-  checksum: 10c0/0b34387111d9b6d04aa2a5545999b12b0265d1bc1cd52c6924b5a090b6fa7cff12d37f9f6f3f64e3ce7e81f035ae47003be04244a41a3b000f2e65b902b53b91
+  checksum: 10c0/d2d4a9eb354d7cd6233f9edf2142b033a7308313b5cceda8df8f93644687e0281a1d99b81db925d68d22c8dc78b41864491a59859f5079d9f1381cd55202486c
   languageName: node
   linkType: hard
 

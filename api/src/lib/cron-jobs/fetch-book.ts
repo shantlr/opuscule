@@ -5,10 +5,12 @@ import { Sources, fetchBookDetails } from 'sources';
 
 export const fetchBook = async (bookId: string, logger = defaultLogger) => {
   const sourceBooks = await SourceRepo.books.get.subscribedSourceOfBook(bookId);
-  logger.info(
-    `[fetch-book] ${bookId} sources:`,
-    sourceBooks.map((s) => s.source_id).join(', '),
-  );
+  logger
+    .scope('fetch-book')
+    .info(
+      `[fetch-book] ${bookId} sources:`,
+      sourceBooks.map((s) => s.source_id).join(', '),
+    );
 
   for (const sourceBook of sourceBooks) {
     const source = Sources.find((s) => s.id === sourceBook.source_id);
@@ -22,5 +24,5 @@ export const fetchBook = async (bookId: string, logger = defaultLogger) => {
     await fetchBookDetails(source, sourceBook.source_book_id);
   }
   await BookRepo.update.lastDetailsFetched(bookId, new Date());
-  logger.info(`[fetch-book] ${bookId} done`);
+  logger.scope('fetch-book').info(`${bookId} done`);
 };

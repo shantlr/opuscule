@@ -6,6 +6,7 @@ import { parseFullFormattedDate } from 'lib/utils/parse-formatted-date';
 import { ACCURACY } from 'config/constants';
 import { fetchPictures } from 'lib/cron-jobs/core/fetch-pictures';
 import { SourceRepo } from 'data/repo/source';
+import { uniqBy } from 'lodash';
 
 export const sourceAsuraScan = {
   id: 'asurascan',
@@ -200,13 +201,16 @@ export const sourceAsuraScan = {
             ...res,
             titleAccuracy: ACCURACY.HIGH,
             descriptionAccuracy: ACCURACY.HIGH,
-            chapters: res.chapters.map((chapt) => ({
-              ...chapt,
-              id: chapt.url.match(/\/chapter\/(?<id>[^/]+)/)?.groups?.id,
-              rank: Number(
-                chapt.url.match(/\/chapter\/(?<id>[^/]+)/)?.groups?.id,
-              ),
-            })),
+            chapters: uniqBy(
+              res.chapters.map((chapt) => ({
+                ...chapt,
+                id: chapt.url.match(/\/chapter\/(?<id>[^/]+)/)?.groups?.id,
+                rank: Number(
+                  chapt.url.match(/\/chapter\/(?<id>[^/]+)/)?.groups?.id,
+                ),
+              })),
+              (c) => c.id,
+            ),
           });
 
         await context.books.upsert([

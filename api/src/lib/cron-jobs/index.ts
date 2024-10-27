@@ -1,7 +1,6 @@
-import { Logger } from 'pino';
 import { fetchLatests } from './fetch-latests';
 import { GlobalSettingsRepo } from 'data/repo/global-settings';
-import { defaultLogger } from 'config/logger';
+import { defaultLogger, Logger } from 'config/logger';
 
 type CronJob = {
   start(): void;
@@ -9,17 +8,12 @@ type CronJob = {
 };
 
 const createCronJob = ({
-  log,
   logger = defaultLogger,
   handler,
   doImmediately,
   interval,
   autoStart = false,
 }: {
-  log: {
-    prefix: string;
-    name: string;
-  };
   doImmediately: boolean;
   handler: () => Promise<void> | void;
   interval: number;
@@ -31,7 +25,7 @@ const createCronJob = ({
   const job: CronJob = {
     start() {
       if (!handle) {
-        logger.info(`${log.prefix} '${log.name}' - setup`);
+        logger.info(`setup`);
         handle = setInterval(() => {
           handler();
         }, interval);
@@ -72,12 +66,8 @@ export const setupCronJobs = async ({
 
   if ((settings.fetch_latests_interval_ms ?? 0) > 0) {
     state.fetchLatests = createCronJob({
-      log: {
-        prefix: `[cron]`,
-        name: `fetch-latests`,
-      },
-      logger,
-      handler: fetchLatests,
+      logger: logger.scope('cron.fetch-latests'),
+      handler: () => fetchLatests({ logger: logger.scope('cron') }),
       doImmediately: true,
       interval: settings.fetch_latests_interval_ms!,
       autoStart: true,

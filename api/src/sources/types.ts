@@ -1,5 +1,5 @@
+import { Logger } from 'config/logger';
 import { Request as GotRequest, OptionsInit } from 'got';
-import { Logger } from 'pino';
 
 export type Op = OpText | OpMap | OpAttr | OpExist | OpObject;
 

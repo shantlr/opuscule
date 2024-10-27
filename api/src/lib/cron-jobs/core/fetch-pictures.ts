@@ -5,8 +5,7 @@ import { SourceRepo } from 'data/repo/source';
 import sharp from 'sharp';
 import { BookRepo } from 'data/repo/books-repo';
 import { WebStreamToNodeStream } from 'lib/utils/stream/readablestream-to-readable';
-import { Logger } from 'pino';
-import { defaultLogger } from 'config/logger';
+import { defaultLogger, Logger } from 'config/logger';
 
 export type FetchPictureJob =
   | {

@@ -1,13 +1,13 @@
-import { defaultLogger } from 'config/logger';
+import { defaultLogger, Logger } from 'config/logger';
 import { db } from 'data/db';
 import { GlobalSettings } from 'data/schema';
 import { formatDuration } from 'lib/utils/format-duration';
 import { forEach, map, omit, sortBy } from 'lodash';
-import { Logger } from 'pino';
 
 export const checkGlobalSettings = async ({
   logger = defaultLogger,
 }: { logger?: Logger } = {}) => {
+  const log = logger.scope('global-settings');
   const result = await db.transaction(async (tx) => {
     const [config] = await tx.select().from(GlobalSettings);
     if (config) {
@@ -30,7 +30,7 @@ export const checkGlobalSettings = async ({
   });
 
   if (result.type === 'inited') {
-    logger.info(`[global-settings] Inited`);
+    log.info(`inited`);
   }
 
   // Log global settings
@@ -46,8 +46,9 @@ export const checkGlobalSettings = async ({
       if (configKey.endsWith('_ms')) {
         formattedValue = formatDuration(value);
       }
-      if (configKey)
-        logger.info(`[global-settings] ${configKey}: ${formattedValue}`);
+      if (configKey) {
+        log.info(`${configKey}: ${formattedValue}`);
+      }
     },
   );
 };

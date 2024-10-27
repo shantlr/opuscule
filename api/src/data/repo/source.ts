@@ -6,7 +6,7 @@ import { maxBy, partition } from 'lodash';
 import { BookRepo } from './books-repo.js';
 import { ACCURACY } from 'config/constants.js';
 import { GlobalSettingsRepo } from './global-settings.js';
-import { defaultLogger } from 'config/logger.js';
+import { defaultLogger, Logger } from 'config/logger.js';
 
 export const SourceRepo = {
   get: {
@@ -383,6 +383,7 @@ export const SourceRepo = {
       sourceId,
       sourceBookId,
       chapters,
+      logger = defaultLogger,
     }: {
       sourceId: string;
       sourceBookId: string;
@@ -392,22 +393,35 @@ export const SourceRepo = {
         publishedAt?: Date | null;
         publishedAtAccuracy?: number;
       }[];
+      logger?: Logger;
     }) => {
       if (!chapters.length) {
         return;
       }
 
       await db.transaction(async (t) => {
-        await t.insert(Chapter).values(
-          chapters.map((c) => ({
-            source_id: sourceId,
-            chapter_id: c.id,
-            chapter_rank: c.rank,
-            source_book_id: sourceBookId,
-            published_at: c.publishedAt,
-            publishedAtAccuracy: c.publishedAtAccuracy ?? ACCURACY.LOW,
-          })),
-        );
+        try {
+          await t.insert(Chapter).values(
+            chapters.map((c) => ({
+              source_id: sourceId,
+              chapter_id: c.id,
+              chapter_rank: c.rank,
+              source_book_id: sourceBookId,
+              published_at: c.publishedAt,
+              publishedAtAccuracy: c.publishedAtAccuracy ?? ACCURACY.LOW,
+            })),
+          );
+        } catch (err) {
+          if (
+            err instanceof Error &&
+            err.message.startsWith('UNIQUE constraint failed:')
+          ) {
+            logger.error(
+              `[source-chapter] create failed: ${sourceId}/${sourceBookId}/${chapters.map((c) => c.id).join(',')}`,
+            );
+          }
+          throw err;
+        }
 
         // Update last chapter updated at
         const lastPublished = maxBy(chapters, (c) => c.publishedAt?.valueOf());

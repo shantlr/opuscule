@@ -14,8 +14,7 @@ import got, { HTTPError, OptionsInit, OptionsOfTextResponseBody } from 'got';
 import { CookieJar } from 'tough-cookie';
 import { BookRepo } from 'data/repo/books-repo';
 import { ACCURACY } from 'config/constants';
-import { defaultLogger } from 'config/logger';
-import { Logger } from 'pino';
+import { defaultLogger, Logger } from 'config/logger';
 
 export const createPage = ({ data }: { data: string }): FetchPage => {
   const $ = cheerio.load(data);
@@ -34,6 +33,7 @@ const createFetcher = async (
   >,
   logger = defaultLogger,
 ) => {
+  const log = logger.scope('fetcher-session');
   const cookieJar = new CookieJar();
 
   for (const cookie of session.cookies) {
@@ -49,7 +49,7 @@ const createFetcher = async (
       const cacheKey = `${session.key}:${url}`;
       const cacheData = await HtmlCacheRepo.get(cacheKey);
       if (cacheData?.data) {
-        logger.info(`[fetcher-session] resolved page from cache '${cacheKey}'`);
+        log.info(`[fetcher-session] resolved page from cache '${cacheKey}'`);
         return cacheData.data;
       }
 
@@ -60,25 +60,20 @@ const createFetcher = async (
           'User-Agent': session.user_agent,
         },
       });
-      logger.info(`[fetcher-session] fetched page '${url}': ${res.statusCode}`);
+      log.info(`[fetcher-session] fetched page '${url}': ${res.statusCode}`);
 
       await HtmlCacheRepo.create(cacheKey, res.body, res.statusCode);
 
       return res.body;
     },
     stream(url: string, options?: OptionsInit) {
-      try {
-        return instance.stream(url, {
-          headers: {
-            // 'User-Agent': session.user_agent,
-            'user-agent': undefined,
-            ...options?.headers,
-          },
-        });
-      } catch (err) {
-        logger.info('>>>>>>>>>>>>>>>>>>>>>>>>');
-        throw err;
-      }
+      return instance.stream(url, {
+        headers: {
+          // 'User-Agent': session.user_agent,
+          'user-agent': undefined,
+          ...options?.headers,
+        },
+      });
     },
   };
 };
@@ -89,6 +84,7 @@ export const createFetcherSession = async (
   options: Parameters<SourceContext['initFetcherSession']>[0],
   logger = defaultLogger,
 ): Promise<FetcherSession> => {
+  const log = logger.scope('fetcher-session');
   let currentFetchSession = prevSession;
 
   let fetcher = currentFetchSession
@@ -96,7 +92,7 @@ export const createFetcherSession = async (
     : null;
 
   if (currentFetchSession && fetcher) {
-    logger.info(`[fetcher-session] reusing session '${sessionId}'`);
+    log.info(`[fetcher-session] reusing session '${sessionId}'`);
   }
 
   const session: FetcherSession = {
@@ -112,7 +108,7 @@ export const createFetcherSession = async (
         }
 
         // start new session
-        logger.info(`[fetcher-session] starting new session for '${url}'`);
+        log.info(`[fetcher-session] starting new session for '${url}'`);
         const flareRes = await startSession({ url });
         currentFetchSession = await FetchSessionRepo.create({
           key: sessionId,
@@ -136,7 +132,7 @@ export const createFetcherSession = async (
       } catch (err) {
         if (err instanceof HTTPError) {
           if (err.response.statusCode === 403) {
-            logger.info(
+            log.info(
               `[fetcher-session] got 403 while fetching ${url}, deleting session`,
             );
             await FetchSessionRepo.delete(sessionId);
@@ -179,6 +175,7 @@ export const createContext = ({
     },
     books: {
       upsert: async (items) => {
+        const log = logger.scope('book-upsert');
         await SourceRepo.ensureCreated(sourceId);
         const itemsById = keyBy(items, (i) => i.id);
 
@@ -223,7 +220,7 @@ export const createContext = ({
           }
 
           if (!item.coverUrl) {
-            logger.info(`[book-upsert] ${sourceId}/${item.id} no cover found`);
+            log.info(`${sourceId}/${item.id} no cover found`);
           }
 
           if (
@@ -242,8 +239,8 @@ export const createContext = ({
 
         await SourceRepo.books.creates(sourceId, missings);
         await SourceRepo.books.updates(sourceId, toUpdate);
-        logger.info(
-          `[book-upsert] ${items.length} input items | ${missings.length} created | ${toUpdate.length} updated`,
+        log.info(
+          `${items.length} input items | ${missings.length} created | ${toUpdate.length} updated`,
         );
         //#endregion
 
@@ -259,7 +256,7 @@ export const createContext = ({
             })),
         );
         await fetchPictures(coverToFetches);
-        logger.info(`[book-upsert] ${coverToFetches.length} covers fetched`);
+        log.info(`${coverToFetches.length} covers fetched`);
         //#endregion
 
         await SourceRepo.books.syncBooks(
@@ -330,7 +327,7 @@ export const createContext = ({
                   : `chapters ${sorted[0].id}..${sorted.at(-1)?.id} created`;
 
             if (toCreate.length) {
-              logger.info(`[book-upsert] ${sourceId}/${sourceBook.id} ${msg}`);
+              log.info(`${sourceId}/${sourceBook.id} ${msg}`);
             }
           }
         }
