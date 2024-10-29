@@ -337,8 +337,9 @@ export const SourceRepo = {
       if (!ids.length) {
         return;
       }
+      const log = logger.scope('sync-books');
 
-      logger.info(`[source-book] sync books: ${sourceId}/${ids.join(',')}`);
+      log.info(`syncing ${sourceId}/${ids.join(',')}`);
 
       const sourceBooks = await db.query.SourceBook.findMany({
         where: inArray(SourceBook.source_book_id, ids),
@@ -350,7 +351,7 @@ export const SourceRepo = {
 
       for (const sb of withoutBooks) {
         await SourceRepo.books.createAssociatedBook(sb);
-        logger.info(
+        log.info(
           `[source-book] associated book created: ${sb.source_id}/${sb.source_book_id}`,
         );
       }

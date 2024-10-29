@@ -29,7 +29,7 @@ const MONTH = {
 export const parseFullFormattedDate = (date: string) => {
   {
     const m = date.match(
-      /(?<month>Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December) (?<day>\d+)(th|st|nd|rd) (?<year>\d+)/,
+      /(?<month>Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December) (?<day>\d+)(th|st|nd|rd)?,? (?<year>\d+)/,
     );
     if (m?.groups) {
       return new Date(

@@ -3,8 +3,13 @@ import { sourceAsuraScan } from './asurascan.js';
 import { ISource } from './types.js';
 import { createContext } from 'lib/cron-jobs/core/create-context';
 import { sourceRizzfables } from './rizzfables.js';
+import { sourceFlamescans } from './flamescans.js';
 
-export const Sources = [sourceAsuraScan, sourceRizzfables] satisfies ISource[];
+export const Sources = [
+  sourceAsuraScan,
+  sourceRizzfables,
+  sourceFlamescans,
+] satisfies ISource[];
 
 export const SourcesByID = keyBy(Sources, (s) => s.id);
 

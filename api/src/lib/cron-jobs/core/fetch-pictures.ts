@@ -32,6 +32,7 @@ export const fetchPictures = async (
     logger?: Logger;
   } = {},
 ) => {
+  const log = logger.scope('fetch-pictures');
   for (const job of jobs) {
     switch (job.type) {
       case 'source_book_cover': {
@@ -67,8 +68,8 @@ export const fetchPictures = async (
           coverUrl: uploadRes.Location!,
           coverOriginUrl: job.img_url,
         });
-        logger.info(
-          `[fetch-picture] Book cover updated for ${job.source_id}/${job.source_book_id}`,
+        log.info(
+          `book cover updated for ${job.source_id}/${job.source_book_id}`,
         );
         continue;
       }
@@ -115,8 +116,8 @@ export const fetchPictures = async (
           sourceChapterId: job.source_chapter_id,
           pages: uploadedPages,
         });
-        logger.info(
-          `[fetch-picture] Chapter pages updated for ${job.source_id}/${job.source_book_id}/${job.source_chapter_id}`,
+        log.info(
+          `chapter pages updated for ${job.source_id}/${job.source_book_id}/${job.source_chapter_id}`,
         );
         return;
       }

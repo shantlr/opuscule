@@ -13,10 +13,19 @@ export const HtmlCacheRepo = {
   async create(url: string, data: string, status: number, date = new Date()) {
     date.setMinutes(0, 0, 0);
     const key = `${date.valueOf()}:${url}`;
-    return await db.insert(HtmlCache).values({
-      data,
-      status,
-      key,
-    });
+    return await db
+      .insert(HtmlCache)
+      .values({
+        data,
+        status,
+        key,
+      })
+      .onConflictDoUpdate({
+        set: {
+          data,
+          status,
+        },
+        target: [HtmlCache.key],
+      });
   },
 };
