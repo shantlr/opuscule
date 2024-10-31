@@ -7,7 +7,7 @@ export const parseFormattedRelativeDate = (
 ) => {
   {
     const m = date.match(
-      /(?<value>[\d]+) (?<unit>weeks?|days?|hours?|months?|years?|minutes?)( ago)?/,
+      /(?<value>[\d]+) (?<unit>weeks?|days?|hours?|months?|years?|minutes?|mins?)( ago)?/,
     );
     if (m && m.groups) {
       const unit = m.groups.unit.replace(/s$/, '');
@@ -16,6 +16,8 @@ export const parseFormattedRelativeDate = (
         case 'week': {
           return dayjs().subtract(Number(m.groups.value), 'week').toDate();
         }
+        case 'min':
+        case 'mins':
         case 'minutes':
         case 'minute': {
           return dayjs()
