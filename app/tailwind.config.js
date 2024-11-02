@@ -1,6 +1,11 @@
 /** @type {import('tailwindcss').Config} */
-export default {
-  content: ['./src/**/*.{ts,tsx,html}'],
+module.exports = {
+  content: [
+    './app/**/*.{js,jsx,ts,tsx}',
+    './common/**/*.{js,jsx,ts,tsx}',
+    './features/**/*.{js,jsx,ts,tsx}',
+  ],
+  presets: [require('nativewind/preset')],
   theme: {
     extend: {
       colors: {
@@ -8,8 +13,10 @@ export default {
         secondarybg: 'white',
         accentbg: '#2B2D42',
         'accentbg-text': '#EDF2F4',
+
         primary: '#D90429',
-        primarylight: '#EF233C',
+        primaryLigth: '#EF233C',
+
         grey: '#8D99AE',
         light: '#8D99AE',
       },
