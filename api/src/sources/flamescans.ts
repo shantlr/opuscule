@@ -1,10 +1,11 @@
-import { z } from 'zod';
-import { ISource } from './types';
-import { parseFormattedRelativeDate } from 'lib/utils/parse-relative-date';
 import { ACCURACY } from 'config/constants';
 import { SourceRepo } from 'data/repo/source';
-import { parseFullFormattedDate } from 'lib/utils/parse-formatted-date';
 import { fetchPictures } from 'lib/cron-jobs/core/fetch-pictures';
+import { parseFullFormattedDate } from 'lib/utils/parse-formatted-date';
+import { parseFormattedRelativeDate } from 'lib/utils/parse-relative-date';
+import { z } from 'zod';
+
+import { ISource } from './types';
 
 const bookIdRegex = /\/series\/(?<id>[^/]+)\/?$/;
 const bookIdSchema = z

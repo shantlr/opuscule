@@ -7,7 +7,6 @@ import importPlugin from 'eslint-plugin-import';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 
-console.log(importPlugin);
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   {
@@ -56,7 +55,10 @@ export default [
     },
   },
   {
-    files: ['app/**/*.{js,mjs,cjs,ts,jsx,tsx}'],
+    files: [
+      'app/**/*.{js,mjs,cjs,ts,jsx,tsx}',
+      'api/**/*.{js,mjs,cjs,ts,jsx,tsx}',
+    ],
     rules: {
       'import/order': [
         'error',

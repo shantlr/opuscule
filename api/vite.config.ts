@@ -1,5 +1,5 @@
-import { defineConfig } from 'vitest/config';
 import { viteNodePreset } from '@shantry/vite-node-preset';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [

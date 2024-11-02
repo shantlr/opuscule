@@ -1,6 +1,7 @@
-import { fetchLatests } from './fetch-latests';
-import { GlobalSettingsRepo } from 'data/repo/global-settings';
 import { defaultLogger, Logger } from 'config/logger';
+import { GlobalSettingsRepo } from 'data/repo/global-settings';
+
+import { fetchLatests } from './fetch-latests';
 
 type CronJob = {
   start(): void;

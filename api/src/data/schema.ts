@@ -1,3 +1,4 @@
+import { relations } from 'drizzle-orm';
 import {
   foreignKey,
   integer,
@@ -8,8 +9,8 @@ import {
   unique,
 } from 'drizzle-orm/sqlite-core';
 import { nanoid } from 'nanoid';
+
 import { Cookie } from './types';
-import { relations } from 'drizzle-orm';
 
 export const GlobalSettings = sqliteTable('global_settings', {
   id: text('key', {

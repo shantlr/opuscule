@@ -17,6 +17,17 @@ export const config = convict({
       default: './data/sqlite.db',
     },
   },
+  chapter: {
+    page: {
+      s3KeyRand: {
+        seed: {
+          doc: `Seed for generating random key for chapter page S3 key, this avoid pages being scrapped`,
+          env: 'CHAPTER_PAGE_S3_KEY_RAND_SEED',
+          default: '',
+        },
+      },
+    },
+  },
   s3: {
     endPoint: {
       env: 'S3_ENDPOINT',

@@ -1,5 +1,4 @@
 import { S3Client } from '@aws-sdk/client-s3';
-
 import { config } from 'config';
 import { logger } from 'config/logger';
 import { getLocalIp } from 'lib/utils/get-local-ip';

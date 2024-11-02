@@ -1,9 +1,10 @@
-import { keyBy } from 'lodash';
-import { sourceAsuraScan } from './asurascan.js';
-import { ISource } from './types.js';
 import { createContext } from 'lib/cron-jobs/core/create-context';
-import { sourceRizzfables } from './rizzfables.js';
+import { keyBy } from 'lodash';
+
+import { sourceAsuraScan } from './asurascan.js';
 import { sourceFlamescans } from './flamescans.js';
+import { sourceRizzfables } from './rizzfables.js';
+import { ISource } from './types.js';
 
 export const Sources = [
   sourceAsuraScan,

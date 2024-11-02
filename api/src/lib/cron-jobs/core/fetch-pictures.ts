@@ -1,11 +1,13 @@
-import { config } from 'config';
-import { s3client } from 'lib/s3';
+import crypto from 'crypto';
+
 import { Upload } from '@aws-sdk/lib-storage';
-import { SourceRepo } from 'data/repo/source';
-import sharp from 'sharp';
-import { BookRepo } from 'data/repo/books-repo';
-import { WebStreamToNodeStream } from 'lib/utils/stream/readablestream-to-readable';
+import { config } from 'config';
 import { defaultLogger, Logger } from 'config/logger';
+import { BookRepo } from 'data/repo/books-repo';
+import { SourceRepo } from 'data/repo/source';
+import { s3client } from 'lib/s3';
+import { WebStreamToNodeStream } from 'lib/utils/stream/readablestream-to-readable';
+import sharp from 'sharp';
 
 export type FetchPictureJob =
   | {
@@ -82,6 +84,9 @@ export const fetchPictures = async (
           width: number;
           height: number;
         }[] = [];
+        log.info(
+          `start fetching chapter pages for ${job.source_id}/${job.source_book_id}/${job.source_chapter_id}...`,
+        );
         for (const [index, page] of job.pages.entries()) {
           const test = await fetch(page.url, {
             method: 'GET',
@@ -95,7 +100,16 @@ export const fetchPictures = async (
           const promises = [sharpStream.metadata()];
           res.pipe(sharpStream);
 
-          const key = `${job.source_id}__${job.source_book_id}__${job.source_chapter_id}__${index}${ext}`;
+          const baseKey = `${job.source_id}__${job.source_book_id}__${job.source_chapter_id}__${index}`;
+
+          // we are adding a small random hash to the key to avoid scraping
+          const randHash = crypto
+            .createHash('sha256')
+            .update(`${config.get('chapter.page.s3KeyRand.seed')}_${baseKey}`)
+            .digest('base64');
+
+          const key = `${baseKey}_${randHash.slice(6)}_${ext}`;
+
           const bucket = config.get('s3.bucket.chapter_pages');
 
           const upload = new Upload({

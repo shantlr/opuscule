@@ -1,8 +1,9 @@
-import { SourceRepo } from 'data/repo/source';
-import { SourcesByID } from 'sources';
-import { createContext } from './core/create-context';
-import { formatDuration } from 'lib/utils/format-duration';
 import { defaultLogger, Logger } from 'config/logger';
+import { SourceRepo } from 'data/repo/source';
+import { formatDuration } from 'lib/utils/format-duration';
+import { SourcesByID } from 'sources';
+
+import { createContext } from './core/create-context';
 
 const sourceStates: Record<
   string,

@@ -1,21 +1,31 @@
-import express from 'express';
-import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
-import { db } from './data/db';
-import path from 'path';
-import cors from 'cors';
-import { checkGlobalSettings } from './lib/global-settings';
-import { setupCronJobs } from './lib/cron-jobs';
-import { router } from 'router';
-import { config } from 'config';
-import bodyParser from 'body-parser';
-import { logger } from 'config/logger';
-import { addLogger } from 'pino-grove/express';
+import crypto from 'crypto';
 import { mkdir } from 'fs/promises';
+import path from 'path';
+
+import bodyParser from 'body-parser';
+import { config } from 'config';
+import { logger } from 'config/logger';
+import cors from 'cors';
+import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
+import express from 'express';
+import { addLogger } from 'pino-grove/express';
+import { router } from 'router';
+
+import { db } from './data/db';
+import { setupCronJobs } from './lib/cron-jobs';
+import { checkGlobalSettings } from './lib/global-settings';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 const main = async () => {
   const log = logger.scope('startup');
+
+  if (!config.get('chapter.page.s3KeyRand.seed')) {
+    log.warn(`missing CHAPTER_PAGE_S3_KEY_RAND_SEED env var`);
+    const example = crypto.randomBytes(16).toString('base64');
+    log.info(`Here an random one: CHAPTER_PAGE_S3_KEY_RAND_SEED=${example}`);
+    process.exit(1);
+  }
 
   await mkdir(path.parse(config.get('db.path')).dir, {
     recursive: true,
