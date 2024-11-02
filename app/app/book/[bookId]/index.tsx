@@ -1,7 +1,8 @@
+import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import { flatMap, groupBy, map, sortBy } from 'lodash';
 import { useMemo } from 'react';
-import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { ApiBookDetail } from '@/common/api/types';
 import { dayjs } from '@/common/dayjs';
@@ -76,9 +77,8 @@ export default function BookDetailsScreen() {
             <View className="w-full p-8">
               <Image
                 className="w-full shrink-0 h-[400px] object- overflow-hidden mr-4 rounded-3xl"
-                source={{
-                  uri: data?.book?.cover_url ?? '',
-                }}
+                cachePolicy="disk"
+                source={data?.book?.cover_url}
               />
             </View>
             <Text>{data?.book?.description}</Text>
@@ -102,9 +102,8 @@ export default function BookDetailsScreen() {
       <View className="w-full mb-8 flex flex-row overflow-hidden">
         <Image
           className="w-[200px] shrink-0 h-[300px] object-contain rounded-2xl bg-cover overflow-hidden mr-4"
-          source={{
-            uri: data?.book?.cover_url ?? '',
-          }}
+          cachePolicy="disk"
+          source={data?.book?.cover_url}
         />
         <View className="w-full shrink">
           <Text>{data?.book?.title}</Text>

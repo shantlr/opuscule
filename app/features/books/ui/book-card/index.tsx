@@ -1,5 +1,6 @@
 import clsx from 'clsx';
-import { Image, Text, View } from 'react-native';
+import { Image } from 'expo-image';
+import { Text, View } from 'react-native';
 
 import { ApiBookSummary } from '@/common/api/types';
 import { dayjs } from '@/common/dayjs';
@@ -21,12 +22,15 @@ export const BookCard = ({
         }}
         className="w-[115px] mb-8 overflow-hidden hover:scale-105 transition-all"
       >
-        <Image
-          className="rounded-xl w-full min-h-[180px]"
-          source={{
-            uri: book.cover_url!,
-          }}
-        />
+        <View className="rounded-xl w-full overflow-hidden h-[180px]">
+          <Image
+            source={book.cover_url}
+            cachePolicy="disk"
+            style={{
+              height: 180,
+            }}
+          />
+        </View>
         <View className="h-[40px] mt-2 w-full">
           <Text className="line-clamp-2">{book.title}</Text>
         </View>

@@ -1,3 +1,5 @@
+import { omit } from 'lodash';
+
 import { API } from '@/common/api';
 import { createUseMutation } from '@/common/api/create-use-mutation';
 import { createUseQuery } from '@/common/api/create-use-query';
@@ -49,5 +51,34 @@ export const useUnbookmarkBook = createUseMutation(API.books.unbookmark, {
 });
 
 export const useSaveReadProgress = createUseMutation(
-  API.books.chapters.saveReadProgress,
+  (
+    params: Parameters<
+      (typeof API)['books']['chapters']['saveReadProgress']
+    >[0] & {
+      bookId: string;
+    },
+  ) => API.books.chapters.saveReadProgress(omit(params, 'bookId')),
+  {
+    onSuccess({ queryClient, variables }) {
+      const chapterQueryKey = QUERY_KEYS.books.id.chapters.id({
+        bookId: variables.bookId,
+        chapterId: variables.chapterId,
+      });
+      const queryData = queryClient.getQueryData(chapterQueryKey) as Awaited<
+        ReturnType<(typeof API)['books']['chapters']['get']>
+      >;
+
+      if (queryData) {
+        queryClient.setQueryData(chapterQueryKey, {
+          ...queryData,
+          user_state: {
+            ...queryData.user_state,
+            percentage: variables.percentage,
+            page: variables.page,
+            read: variables.percentage > 0.98,
+          },
+        });
+      }
+    },
+  },
 );

@@ -141,9 +141,10 @@ export default function ChapterScreen() {
         className="w-full"
         scrollEventThrottle={500}
         onLayout={(event) => {
+          const height = event.nativeEvent?.layout?.height;
           setScrollHeight((v) => ({
             ...v,
-            height: event.nativeEvent.layout.height,
+            height,
           }));
         }}
         onContentSizeChange={(width, height) => {
