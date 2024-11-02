@@ -86,6 +86,7 @@ export default function ChapterScreen() {
     if (readProgress.percentage === 100) {
       endReachedRef.current = true;
       saveProgress({
+        bookId: bookId,
         chapterId: chapterId,
         percentage: readProgress.percentage,
         page: readProgress.page,
@@ -96,6 +97,7 @@ export default function ChapterScreen() {
     // debounce save progress
     const handle = setTimeout(() => {
       saveProgress({
+        bookId: bookId,
         chapterId: chapterId,
         percentage: readProgress.percentage,
         page: readProgress.page,

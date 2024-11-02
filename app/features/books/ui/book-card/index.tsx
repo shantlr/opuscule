@@ -75,12 +75,15 @@ export const BookCard = ({
         </View>
       </View>
       <View>
-        <Image
-          className="rounded-xl w-[160px] min-h-[230px]"
-          source={{
-            uri: book.cover_url!,
-          }}
-        />
+        <View className="rounded-xl overflow-hidden">
+          <Image
+            source={book.cover_url}
+            style={{
+              width: 160,
+              height: 230,
+            }}
+          />
+        </View>
       </View>
     </LinkPressable>
   );
