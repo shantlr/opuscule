@@ -212,18 +212,21 @@ export const SourceRepo = {
       cover: async ({
         sourceId,
         bookId,
-        coverUrl,
+        coverS3Bucket,
+        coverS3Key,
         coverOriginUrl,
       }: {
         sourceId: string;
         bookId: string;
-        coverUrl: string;
+        coverS3Bucket: string;
+        coverS3Key: string;
         coverOriginUrl: string;
       }) => {
         await db
           .update(SourceBook)
           .set({
-            cover_url: coverUrl,
+            cover_s3_bucket: coverS3Bucket,
+            cover_s3_key: coverS3Key,
             cover_origin_url: coverOriginUrl,
           })
           .where(
@@ -312,7 +315,8 @@ export const SourceRepo = {
           .insert(Book)
           .values({
             title: sb.title,
-            cover_url: sb.cover_url,
+            cover_s3_key: sb.cover_s3_key,
+            cover_s3_bucket: sb.cover_s3_bucket,
             description: sb.description,
           })
           .returning();

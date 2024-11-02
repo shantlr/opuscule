@@ -126,7 +126,12 @@ export const BookRepo = {
       }: {
         sourceBookId: string;
         sourceChapterId: string;
-        pages: { url: string }[];
+        pages: {
+          s3_key: string;
+          s3_bucket: string;
+          width: number;
+          height: number;
+        }[];
       }) => {
         await db
           .update(Chapter)

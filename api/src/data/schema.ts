@@ -56,7 +56,9 @@ export const Book = sqliteTable('books', {
     .$defaultFn(() => nanoid()),
   title: text('title').notNull(),
   description: text('description'),
-  cover_url: text('cover_url'),
+
+  cover_s3_bucket: text('s3_bucket'),
+  cover_s3_key: text('s3_key'),
 
   last_chapter_updated_at: integer('last_chapter_updated_at', {
     mode: 'timestamp_ms',
@@ -86,6 +88,13 @@ export const Chapter = sqliteTable(
     source_id: text('source_id').notNull(),
     source_book_id: text('source_book_id').notNull(),
     pages: text('pages', { mode: 'json' }),
+    // .$type<
+    //   {
+    //     url: string;
+    //     width: number;
+    //     height: number;
+    //   }[]
+    // >,
 
     published_at: integer('published_at', { mode: 'timestamp_ms' }),
     published_at_accuracy: integer('published_at_accuracy'),
@@ -164,7 +173,8 @@ export const SourceBook = sqliteTable(
     description: text('description'),
     description_accuracy: integer('description_accuracy'),
 
-    cover_url: text('cover_url'),
+    cover_s3_bucket: text('cover_s3_bucket'),
+    cover_s3_key: text('cover_s3_key'),
     cover_origin_url: text('cover_origin_url'),
   },
   (table) => ({

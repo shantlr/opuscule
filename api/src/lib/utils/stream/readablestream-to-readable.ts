@@ -6,7 +6,7 @@ import { PassThrough, Readable, once, TransformOptions } from 'stream';
  * Write to stream.
  * Block until drained or aborted
  */
-async function write(stream: PassThrough, data: any, ac: AbortController) {
+async function write(stream: PassThrough, data: unknown, ac: AbortController) {
   if (stream.write(data)) {
     return;
   }

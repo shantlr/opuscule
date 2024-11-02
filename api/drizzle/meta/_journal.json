@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1728503344721,
-      "tag": "0000_dapper_greymalkin",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1728748540800,
-      "tag": "0001_tidy_meggan",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1729546947658,
-      "tag": "0002_tidy_nicolaos",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1729715184202,
-      "tag": "0003_elite_newton_destine",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1729715364132,
-      "tag": "0004_far_the_phantom",
+      "when": 1730428371065,
+      "tag": "0000_slim_dracula",
       "breakpoints": true
     }
   ]

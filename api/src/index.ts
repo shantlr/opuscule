@@ -10,11 +10,16 @@ import { config } from 'config';
 import bodyParser from 'body-parser';
 import { logger } from 'config/logger';
 import { addLogger } from 'pino-grove/express';
+import { mkdir } from 'fs/promises';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 const main = async () => {
   const log = logger.scope('startup');
+
+  await mkdir(path.parse(config.get('db.path')).dir, {
+    recursive: true,
+  });
   await migrate(db, {
     migrationsFolder: path.resolve(__dirname, '../drizzle'),
   });

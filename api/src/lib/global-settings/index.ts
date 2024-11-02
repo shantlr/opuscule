@@ -38,6 +38,7 @@ export const checkGlobalSettings = async ({
     sortBy(
       map(
         omit(result.config, ['id']),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (value, key) => [value, key] as [any, string],
       ),
     ),

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "49d389a4-8553-4a41-bcf7-2d8271f067ba",
+  "id": "54d10fbb-feb3-469d-a4ff-01b7934bf847",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "books": {
@@ -28,8 +28,15 @@
           "notNull": false,
           "autoincrement": false
         },
-        "cover_url": {
-          "name": "cover_url",
+        "s3_bucket": {
+          "name": "s3_bucket",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "s3_key": {
+          "name": "s3_key",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -140,6 +147,7 @@
         "unique_source_chapter": {
           "name": "unique_source_chapter",
           "columns": [
+            "source_id",
             "source_book_id",
             "chapter_id"
           ],
@@ -282,6 +290,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "subscribed": {
+          "name": "subscribed",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "last_fetch": {
           "name": "last_fetch",
           "type": "integer",
@@ -368,8 +383,15 @@
           "notNull": false,
           "autoincrement": false
         },
-        "cover_url": {
-          "name": "cover_url",
+        "cover_s3_bucket": {
+          "name": "cover_s3_bucket",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "cover_s3_key": {
+          "name": "cover_s3_key",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -421,6 +443,82 @@
           "name": "id"
         }
       },
+      "uniqueConstraints": {}
+    },
+    "user_book_states": {
+      "name": "user_book_states",
+      "columns": {
+        "book_id": {
+          "name": "book_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "bookmarked": {
+          "name": "bookmarked",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "unique_user_book_state": {
+          "name": "unique_user_book_state",
+          "columns": [
+            "book_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "user_chapter_states": {
+      "name": "user_chapter_states",
+      "columns": {
+        "chapter_id": {
+          "name": "chapter_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "read": {
+          "name": "read",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "percentage": {
+          "name": "percentage",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "current_page": {
+          "name": "current_page",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "unique_user_chapter_state": {
+          "name": "unique_user_chapter_state",
+          "columns": [
+            "chapter_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     }
   },

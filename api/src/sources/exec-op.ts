@@ -6,7 +6,9 @@ import type * as cheerio from 'cheerio';
 const getElem = (
   $: cheerio.CheerioAPI,
   selector: Query | undefined,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   context?: cheerio.Cheerio<any>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): cheerio.Cheerio<any> => {
   if (!selector) {
     if (!context) {
@@ -44,7 +46,7 @@ export const execOperations = <O extends Op>(
   {
     context,
   }: {
-    context?: cheerio.Cheerio<any>;
+    context?: cheerio.Cheerio<unknown>;
   } = {},
 ): OpOutput<O> => {
   switch (op.type) {
@@ -52,13 +54,13 @@ export const execOperations = <O extends Op>(
       const elem = getElem($, op.query, context);
       const text = elem.text();
       if (op.includes && !text.includes(op.includes)) {
-        return '' as any;
+        return '' as OpOutput<O>;
       }
-      return text as any;
+      return text as OpOutput<O>;
     }
     case 'exist': {
       const res = execOperations($, op.value, { context });
-      return !!res as any;
+      return !!res as OpOutput<O>;
     }
     case 'attr': {
       const elem = getElem($, op.query, context);
@@ -69,11 +71,11 @@ export const execOperations = <O extends Op>(
 
         logger.warn(`[exec-op] elem matching '${op.query}' not found`);
       }
-      return elem.attr(op.name) as any;
+      return elem.attr(op.name) as OpOutput<O>;
     }
     case 'object': {
       const elem = getElem($, op.query, context);
-      const res: Record<string, any> = Object.fromEntries(
+      const res: Record<string, unknown> = Object.fromEntries(
         Object.entries(op.fields).map(([key, value]) => [
           key,
           execOperations($, value, { context: elem }),
@@ -83,18 +85,18 @@ export const execOperations = <O extends Op>(
       return res as OpOutput<O>;
     }
     case 'map': {
-      const res: any[] = [];
+      const res: unknown[] = [];
 
       const elems = getElem($, op.query, context);
       elems.each((index, el) => {
-        const item: Record<string, any> = {};
+        const item: Record<string, unknown> = {};
         for (const key in op.item) {
           item[key] = execOperations($, op.item[key], { context: el });
         }
         res.push(item);
       });
 
-      return res as any;
+      return res as OpOutput<O>;
     }
     default:
   }

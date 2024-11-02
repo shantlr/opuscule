@@ -11,6 +11,12 @@ export const config = convict({
       default: 4560,
     },
   },
+  db: {
+    path: {
+      env: 'DB_PATH',
+      default: './data/sqlite.db',
+    },
+  },
   s3: {
     endPoint: {
       env: 'S3_ENDPOINT',

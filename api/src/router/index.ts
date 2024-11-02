@@ -9,6 +9,7 @@ import { fetchChapter } from 'lib/cron-jobs/fetch-chapter';
 import dayjs from 'dayjs';
 import { keyBy, omit, sortBy } from 'lodash';
 import { logger } from 'config/logger';
+import { formatPublicS3Url } from 'lib/s3';
 
 export const router = Router();
 
@@ -97,19 +98,25 @@ router.get('/books', async (req, res) => {
     );
     const stateByBookId = keyBy(userStates, (state) => state.book_id);
 
-    const mappedBooks = books.map((book) => {
-      const chapters = book.sourceBooks.flatMap((sb) => sb.chapters);
-      return {
-        ...book,
-        bookmarked: stateByBookId[book.id]?.bookmarked ?? false,
-        latests_chapters: sortBy(chapters, (c) => -c.chapter_rank)
-          .slice(0, 3)
-          .map(({ userState, ...chapter }) => ({
-            ...chapter,
-            user_state: userState,
-          })),
-      };
-    });
+    const mappedBooks = books.map(
+      ({ cover_s3_key, cover_s3_bucket, ...book }) => {
+        const chapters = book.sourceBooks.flatMap((sb) => sb.chapters);
+        return {
+          ...book,
+          cover_url:
+            !!cover_s3_key && !!cover_s3_bucket
+              ? formatPublicS3Url(cover_s3_bucket, cover_s3_key)
+              : null,
+          bookmarked: stateByBookId[book.id]?.bookmarked ?? false,
+          latests_chapters: sortBy(chapters, (c) => -c.chapter_rank)
+            .slice(0, 3)
+            .map(({ userState, ...chapter }) => ({
+              ...chapter,
+              user_state: userState,
+            })),
+        };
+      },
+    );
 
     return res.status(200).send({
       books: mappedBooks,
@@ -122,19 +129,26 @@ router.get('/books', async (req, res) => {
 router.get('/books/:id', async (req, res) => {
   try {
     let book = await BookRepo.get.byIdWithChapters(req.params.id);
-    if (!book) {
-      return res.status(404).send();
-    }
 
     // if details never fetched, fetch it
-    if (!book.last_detail_updated_at) {
+    if (book && !book.last_detail_updated_at) {
       await fetchBook(book.id);
       book = await BookRepo.get.byIdWithChapters(book.id);
     }
 
+    if (!book) {
+      return res.status(404).send();
+    }
+
+    const { cover_s3_key, cover_s3_bucket, ...rest } = book;
+
     return res.status(200).send({
       book: {
-        ...book,
+        ...rest,
+        cover_url:
+          cover_s3_key && cover_s3_bucket
+            ? formatPublicS3Url(cover_s3_bucket, cover_s3_key)
+            : null,
         sourceBooks: book?.sourceBooks.map((sb) => ({
           ...sb,
           chapters: sb.chapters.map(({ userState, ...chapter }) => ({
@@ -235,7 +249,13 @@ router.get('/books/:bookId/chapter/:chapterId', async (req, res) => {
     }
 
     return res.status(200).send({
-      chapter: omit(chapter, 'userState'),
+      chapter: {
+        ...omit(chapter, 'userState'),
+        pages: (chapter.pages as any[]).map((page) => ({
+          ...omit(page, ['s3_bucket', 's3_key']),
+          url: formatPublicS3Url(page.s3_bucket, page.s3_key),
+        })),
+      },
       user_state: chapter.userState,
     });
   } catch (err) {

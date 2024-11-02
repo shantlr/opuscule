@@ -105,7 +105,7 @@ export const sourceFlamescans = {
             title: z.string().trim(),
             chapters: z.preprocess(
               (chapters) => {
-                return (chapters as any[])
+                return (chapters as (typeof items)[number]['chapters'])
                   .filter((item) => !!item.title)
                   .map((chapter) => ({
                     ...chapter,

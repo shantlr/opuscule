@@ -53,19 +53,21 @@ export const fetchPictures = async (
         ext = ext ? `.${ext}` : '';
 
         const key = `${job.source_id}__${job.source_book_id}${ext}`;
+        const bucket = config.get('s3.bucket.book_cover');
         const upload = new Upload({
           client: s3client,
           params: {
-            Bucket: config.get('s3.bucket.book_cover'),
+            Bucket: bucket,
             Key: key,
             Body: res.body,
           },
         });
-        const uploadRes = await upload.done();
+        await upload.done();
         await SourceRepo.books.update.cover({
           sourceId: job.source_id,
           bookId: job.source_book_id,
-          coverUrl: uploadRes.Location!,
+          coverS3Key: key,
+          coverS3Bucket: bucket,
           coverOriginUrl: job.img_url,
         });
         log.info(
@@ -75,7 +77,8 @@ export const fetchPictures = async (
       }
       case 'chapter_pages': {
         const uploadedPages: {
-          url: string;
+          s3_key: string;
+          s3_bucket: string;
           width: number;
           height: number;
         }[] = [];
@@ -93,20 +96,22 @@ export const fetchPictures = async (
           res.pipe(sharpStream);
 
           const key = `${job.source_id}__${job.source_book_id}__${job.source_chapter_id}__${index}${ext}`;
+          const bucket = config.get('s3.bucket.chapter_pages');
 
           const upload = new Upload({
             client: s3client,
             params: {
-              Bucket: config.get('s3.bucket.chapter_pages'),
+              Bucket: bucket,
               Key: key,
               Body: sharpStream,
             },
           });
 
-          const uploadRes = await upload.done();
+          await upload.done();
           const [meta] = await Promise.all(promises);
           uploadedPages.push({
-            url: uploadRes.Location!,
+            s3_key: key,
+            s3_bucket: bucket,
             width: meta.width!,
             height: meta.height!,
           });
