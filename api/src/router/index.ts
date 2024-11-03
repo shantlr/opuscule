@@ -230,22 +230,19 @@ router.delete('/books/:id/bookmark', async (req, res) => {
 
 router.get('/books/:bookId/chapter/:chapterId', async (req, res) => {
   try {
-    const chapter = await BookRepo.chapters.get.byIdWithReadProgress(
+    let chapter = await BookRepo.chapters.get.byIdWithReadProgress(
       req.params.chapterId,
     );
 
-    if (!chapter) {
-      return res.status(404).send();
-    }
-
-    if (!chapter.pages) {
+    if (chapter && !chapter.pages) {
       await fetchChapter({
         chapterId: chapter.id,
       });
-      const updated = await BookRepo.chapters.get.byId(chapter.id);
-      return res.status(200).send({
-        chapter: updated,
-      });
+      chapter = await BookRepo.chapters.get.byIdWithReadProgress(chapter.id);
+    }
+
+    if (!chapter) {
+      return res.status(404).send();
     }
 
     return res.status(200).send({

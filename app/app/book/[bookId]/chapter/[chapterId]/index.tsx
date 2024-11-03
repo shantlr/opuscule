@@ -1,6 +1,7 @@
+import { Image } from 'expo-image';
 import { findLastIndex } from 'lodash';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Image, ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
 import { useTypedLocalSearchParams } from '@/common/navigation/use-local-search-params';
 import { MobileScreenHeader } from '@/common/ui/layouts/mobile-screen-header';
@@ -106,24 +107,6 @@ export default function ChapterScreen() {
     return () => clearTimeout(handle);
   }, [readProgress.page, readProgress.percentage]);
 
-  if (isLoading) {
-    <View
-      className="h-full w-full"
-      onLayout={(e) => {
-        setWidth(e.nativeEvent.layout.width);
-      }}
-    >
-      <MobileScreenHeader
-        back={{
-          pathname: '/book/[bookId]',
-          params: { bookId },
-        }}
-        title=""
-      />
-      <Text>Loading ...</Text>
-    </View>;
-  }
-
   return (
     <View
       className="h-full w-full"
@@ -136,7 +119,9 @@ export default function ChapterScreen() {
           pathname: '/book/[bookId]',
           params: { bookId },
         }}
-        title={`Chapter ${data?.chapter?.chapter_id}`}
+        title={
+          isLoading ? 'Loading...' : `Chapter ${data?.chapter?.chapter_id}`
+        }
       />
       <ScrollView
         ref={scrollViewRef}
@@ -182,10 +167,8 @@ export default function ChapterScreen() {
               style={{
                 height: page.height * (Math.min(width ?? 0, 500) / page.width),
               }}
-              resizeMode="contain"
-              source={{
-                uri: page.url,
-              }}
+              contentFit="contain"
+              source={page.url}
             />
           </View>
         ))}

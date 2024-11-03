@@ -106,7 +106,7 @@ export const fetchPictures = async (
           const randHash = crypto
             .createHash('sha256')
             .update(`${config.get('chapter.page.s3KeyRand.seed')}_${baseKey}`)
-            .digest('base64');
+            .digest('hex');
 
           const key = `${baseKey}_${randHash.slice(6)}_${ext}`;
 

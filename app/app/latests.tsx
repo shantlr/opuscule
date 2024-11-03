@@ -13,8 +13,6 @@ const Container = styled.SafeAreaView`
 export default function Index() {
   const { data, error, isLoading } = useLastUpdatedBooks({});
 
-  console.log(data);
-
   return (
     <Container>
       <ScrollView className="px-2 md:px-4">
