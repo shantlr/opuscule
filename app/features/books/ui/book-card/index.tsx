@@ -56,7 +56,7 @@ export const BookCard = ({
         'web:hover:scale-105',
       )}
     >
-      <View className="shrink grow">
+      <View className="shrink grow w-[320px]">
         <Text className="font-bold pl-2 pt-2 mb-2">{book.title}</Text>
         <View className="flex flex-col">
           {book.latests_chapters.map((chapter) => (

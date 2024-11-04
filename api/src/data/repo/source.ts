@@ -30,7 +30,9 @@ export const SourceRepo = {
       return sources;
     },
     listSubscribed: async () => {
-      return db.query.Source.findMany({});
+      return db.query.Source.findMany({
+        where: eq(Source.subscribed, true),
+      });
     },
   },
 
@@ -56,6 +58,14 @@ export const SourceRepo = {
           where: eq(Source.id, sourceId),
         });
         if (existing) {
+          if (existing.subscribed) {
+            return;
+          }
+
+          await t
+            .update(Source)
+            .set({ subscribed: true })
+            .where(eq(Source.id, sourceId));
           return;
         }
 
@@ -71,8 +81,14 @@ export const SourceRepo = {
         const existing = await t.query.Source.findFirst({
           where: eq(Source.id, sourceId),
         });
-        if (existing) {
-          await t.delete(Source).where(eq(Source.id, sourceId));
+        console.log(existing);
+        if (existing && existing.subscribed) {
+          await t
+            .update(Source)
+            .set({
+              subscribed: false,
+            })
+            .where(eq(Source.id, sourceId));
         }
       });
       logger.info(`[source] unsubscribed: ${sourceId}`);

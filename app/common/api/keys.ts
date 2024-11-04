@@ -115,4 +115,8 @@ export const QUERY_KEYS = createKeyTree({
       },
     },
   },
+
+  sources: {
+    [K]: 'sources',
+  },
 });

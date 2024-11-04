@@ -91,11 +91,6 @@ function MobileScreen({ data }: { data: ReturnType<typeof useBook>['data'] }) {
     opacity: interpolate(titleTransition.value, [0, 24], [0, 1]),
   }));
 
-  console.log({
-    cardBottomReached,
-    contentTopReached,
-  });
-
   return (
     <View className="h-full w-full relative">
       <View
@@ -154,12 +149,6 @@ function MobileScreen({ data }: { data: ReturnType<typeof useBook>['data'] }) {
         scrollEnabled={!cardBottomReached || contentTopReached}
         bounces={false}
         onScroll={(event) => {
-          console.log(
-            '>>',
-            event.nativeEvent.contentOffset.y,
-            event.nativeEvent.layoutMeasurement.height,
-            event.nativeEvent.contentSize.height,
-          );
           if (
             event.nativeEvent.contentOffset.y +
               event.nativeEvent.layoutMeasurement.height >=

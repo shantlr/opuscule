@@ -9,6 +9,12 @@ export const API = {
       path: '/sources',
       result: json<ApiSource[]>,
     }),
+    subscribe: post({
+      path: ({ id }: { id: string }) => `/sources/${id}/subscribe`,
+    }),
+    unsubscribe: del({
+      path: ({ id }: { id: string }) => `/sources/${id}/subscribe`,
+    }),
   },
   books: {
     list: get({

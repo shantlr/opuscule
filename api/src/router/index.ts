@@ -31,13 +31,9 @@ router.get('/sources', async (req, res) => {
   }
 });
 
-router.post('/sources/subscribe', async (req, res) => {
+router.post('/sources/:id/subscribe', async (req, res) => {
   try {
-    const { id } = z
-      .object({
-        id: z.string(),
-      })
-      .parse(req.body);
+    const { id } = req.params;
 
     const source = Sources.find((s) => s.id === id);
     if (!source) {

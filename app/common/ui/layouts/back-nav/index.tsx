@@ -29,9 +29,6 @@ export const BackNav = <Route extends object>({
           size={30}
           name="chevron-left"
           className={className}
-          style={{
-            color: 'white',
-          }}
           {...props}
         />
       </TouchableOpacity>
