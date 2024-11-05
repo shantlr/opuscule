@@ -16,6 +16,7 @@ module.exports = {
         'accentbg-text': '#EDF2F4',
 
         accent: '#818cf8',
+        'on-accent': '#E8E4ED',
         // primary: '#D90429',
         // primaryLigth: '#EF233C',
 

@@ -75,7 +75,7 @@ const ChapterList = ({ book }: { book: ApiBookDetail | undefined }) => {
               </Text>
               {!!chapter.user_state && !chapter.user_state.read && (
                 <View className="px-2 bg-accent rounded">
-                  <Text className="text-sm">
+                  <Text className="text-sm text-on-accent">
                     {Math.round(chapter.user_state.percentage * 100)}%
                   </Text>
                 </View>

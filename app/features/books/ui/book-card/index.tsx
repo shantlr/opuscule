@@ -26,9 +26,9 @@ export const BookCard = ({
           pathname: '/book/[bookId]',
           params: { bookId: book.id },
         }}
-        className="w-[115px] mb-8 overflow-hidden web:hover:scale-105 transition-all"
+        className="w-[115px] mb-8 web:hover:scale-105 transition-all"
       >
-        <View className="relative rounded-xl w-full overflow-hidden h-[180px]">
+        <View className="relative rounded-xl w-full overflow-hidden h-[180px] shadow-md">
           <Image
             source={book.cover_url}
             cachePolicy="disk"
@@ -37,7 +37,7 @@ export const BookCard = ({
             }}
           />
           <TouchableOpacity
-            className="absolute top-2 right-2 rounded-xl shadow-xl p-1 bg-black/30"
+            className="absolute top-2 right-2 rounded-xl shadow-md shadow-accent p-1 bg-black/50"
             onPress={(event) => {
               event.stopPropagation?.();
               event.preventDefault?.();
