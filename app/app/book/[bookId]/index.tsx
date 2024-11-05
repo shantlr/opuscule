@@ -58,8 +58,12 @@ const ChapterList = ({ book }: { book: ApiBookDetail | undefined }) => {
             }}
             asChild
           >
-            <TouchableOpacity className="p-3 bg-secondarybg rounded-lg">
-              <Text className="web:hover:text-light transition-all">
+            <TouchableOpacity className="p-3 bg-secondarybg rounded-lg flex flex-row justify-between">
+              <Text
+                className={clsx('web:hover:text-light transition-all', {
+                  'text-light': chapter.user_state?.read,
+                })}
+              >
                 Chapter {chapter.chapter_id}
                 <Text>
                   {' '}
@@ -69,6 +73,13 @@ const ChapterList = ({ book }: { book: ApiBookDetail | undefined }) => {
                     : null}
                 </Text>
               </Text>
+              {!!chapter.user_state && !chapter.user_state.read && (
+                <View className="px-2 bg-accent rounded">
+                  <Text className="text-sm">
+                    {Math.round(chapter.user_state.percentage * 100)}%
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
           </Link>
         </View>
