@@ -34,7 +34,7 @@ export default function Settings() {
             <TouchableOpacity
               role="listitem"
               className={clsx('p-2 rounded border', {
-                'bg-primary border-primary': source.subscribed,
+                'bg-accent border-accent': source.subscribed,
               })}
               onPress={() => {
                 if (source.subscribed) {

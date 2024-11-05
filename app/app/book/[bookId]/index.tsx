@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
@@ -24,7 +25,11 @@ import { useIsMobile } from '@/common/hooks/use-screen-size';
 import { useTypedLocalSearchParams } from '@/common/navigation/use-local-search-params';
 import { BackNav } from '@/common/ui/layouts/back-nav';
 import { HEADER_HEIGHT } from '@/common/ui/layouts/mobile-screen-header';
-import { useBook } from '@/features/books/hooks/use-books';
+import {
+  useBook,
+  useBookmarkBook,
+  useUnbookmarkBook,
+} from '@/features/books/hooks/use-books';
 
 const ChapterList = ({ book }: { book: ApiBookDetail | undefined }) => {
   const chapters = useMemo(() => {
@@ -73,6 +78,9 @@ const ChapterList = ({ book }: { book: ApiBookDetail | undefined }) => {
 };
 
 function MobileScreen({ data }: { data: ReturnType<typeof useBook>['data'] }) {
+  const { mutate: bookmark } = useBookmarkBook({});
+  const { mutate: unbookmark } = useUnbookmarkBook({});
+
   const safeArea = useSafeAreaInsets();
   const cardScrollView = useRef<ScrollView>(null);
   const contentScrollView = useRef<ScrollView>(null);
@@ -125,7 +133,7 @@ function MobileScreen({ data }: { data: ReturnType<typeof useBook>['data'] }) {
           </Text>
         </Animated.View>
         <View
-          className="absolute flex justify-center items-center"
+          className="w-full absolute flex flex-row justify-between items-center"
           style={{
             top: safeArea.top,
             height: HEADER_HEIGHT,
@@ -133,6 +141,25 @@ function MobileScreen({ data }: { data: ReturnType<typeof useBook>['data'] }) {
           }}
         >
           <BackNav href="/" className="text-white" />
+          <TouchableOpacity
+            onPress={() => {
+              if (!data?.book) {
+                return;
+              }
+
+              if (data.book.bookmarked) {
+                unbookmark({ id: data.book.id });
+              } else {
+                bookmark({ id: data.book.id });
+              }
+            }}
+          >
+            <Ionicons
+              size={24}
+              name={data?.book?.bookmarked ? 'bookmark' : 'bookmark-outline'}
+              className="text-white pr-2"
+            />
+          </TouchableOpacity>
         </View>
 
         <View className="absolute bottom-[150px] right-8">

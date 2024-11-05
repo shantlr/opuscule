@@ -203,6 +203,13 @@ export const BookRepo = {
         where: inArray(UserBookState.book_id, bookIds),
       });
     },
+    get: {
+      byId: async (bookId: string) => {
+        return db.query.UserBookState.findFirst({
+          where: eq(UserBookState.book_id, bookId),
+        });
+      },
+    },
   },
 
   update: {

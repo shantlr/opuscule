@@ -125,6 +125,7 @@ router.get('/books', async (req, res) => {
 router.get('/books/:id', async (req, res) => {
   try {
     let book = await BookRepo.get.byIdWithChapters(req.params.id);
+    const userState = await BookRepo.userStates.get.byId(req.params.id);
 
     // if details never fetched, fetch it
     if (book && !book.last_detail_updated_at) {
@@ -145,6 +146,7 @@ router.get('/books/:id', async (req, res) => {
           cover_s3_key && cover_s3_bucket
             ? formatPublicS3Url(cover_s3_bucket, cover_s3_key)
             : null,
+        bookmarked: userState?.bookmarked ?? false,
         sourceBooks: book?.sourceBooks.map((sb) => ({
           ...sb,
           chapters: sb.chapters.map(({ userState, ...chapter }) => ({

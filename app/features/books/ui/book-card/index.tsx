@@ -1,10 +1,13 @@
+import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
 import { Image } from 'expo-image';
-import { Text, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 
 import { ApiBookSummary } from '@/common/api/types';
 import { dayjs } from '@/common/dayjs';
 import { LinkPressable } from '@/common/ui/link-pressable';
+
+import { useBookmarkBook, useUnbookmarkBook } from '../../hooks/use-books';
 
 export const BookCard = ({
   book,
@@ -13,6 +16,9 @@ export const BookCard = ({
   book: ApiBookSummary;
   size?: 'small' | 'default';
 }) => {
+  const { mutate: bookmark } = useBookmarkBook({});
+  const { mutate: unbookmark } = useUnbookmarkBook({});
+
   if (size === 'small') {
     return (
       <LinkPressable
@@ -20,9 +26,9 @@ export const BookCard = ({
           pathname: '/book/[bookId]',
           params: { bookId: book.id },
         }}
-        className="w-[115px] mb-8 overflow-hidden hover:scale-105 transition-all"
+        className="w-[115px] mb-8 overflow-hidden web:hover:scale-105 transition-all"
       >
-        <View className="rounded-xl w-full overflow-hidden h-[180px]">
+        <View className="relative rounded-xl w-full overflow-hidden h-[180px]">
           <Image
             source={book.cover_url}
             cachePolicy="disk"
@@ -30,6 +36,24 @@ export const BookCard = ({
               height: 180,
             }}
           />
+          <TouchableOpacity
+            className="absolute top-2 right-2 rounded-xl shadow-xl p-1 bg-black/30"
+            onPress={(event) => {
+              event.stopPropagation?.();
+              event.preventDefault?.();
+              if (book.bookmarked) {
+                unbookmark({ id: book.id });
+              } else {
+                bookmark({ id: book.id });
+              }
+            }}
+          >
+            <Ionicons
+              size={24}
+              name={book?.bookmarked ? 'bookmark' : 'bookmark-outline'}
+              className="text-white"
+            />
+          </TouchableOpacity>
         </View>
         <View className="h-[40px] mt-2 w-full">
           <Text className="line-clamp-2">{book.title}</Text>
