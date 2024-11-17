@@ -33,9 +33,15 @@ export const BookRepo = {
         },
       });
     },
-    latestUpdateds: async (query?: { bookmarked?: boolean }) => {
+    latestUpdateds: async (query?: {
+      bookIds?: string[];
+      bookmarked?: boolean;
+    }) => {
       const cond: SQL[] = [];
 
+      if (Array.isArray(query?.bookIds) && query.bookIds.length) {
+        cond.push(inArray(Book.id, query.bookIds));
+      }
       if (typeof query?.bookmarked === 'boolean') {
         const bookmarked = await db.query.UserBookState.findMany({
           where: eq(UserBookState.bookmarked, true),
@@ -75,6 +81,12 @@ export const BookRepo = {
           },
         },
       });
+    },
+    byIdLatestUpdated: async (id: string) => {
+      const res = await BookRepo.get.latestUpdateds({
+        bookIds: [id],
+      });
+      return res[0];
     },
   },
   chapters: {

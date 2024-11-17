@@ -9,11 +9,11 @@ import cors from 'cors';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import express from 'express';
 import { addLogger } from 'pino-grove/express';
-import { router } from 'router';
 
 import { db } from './data/db';
 import { setupCronJobs } from './lib/cron-jobs';
 import { checkGlobalSettings } from './lib/global-settings';
+import { router } from './router';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 

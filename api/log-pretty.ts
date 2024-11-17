@@ -3,7 +3,7 @@ import { expressConfig } from 'pino-grove/express';
 
 runPinoGrove({
   configs: [
-    expressConfig,
+    expressConfig(),
     {
       prefix: {
         append: ['scope'],
