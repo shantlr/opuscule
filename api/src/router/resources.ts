@@ -135,9 +135,12 @@ const bookSummaryOutput = object({
   last_chapter_updated_at: nullable(date()),
   cover_url: nullable(string()),
   bookmarked: boolean(),
+
+  unread_chapters_count: number(),
   latests_chapters: array(
     object({
       id: string(),
+      chapter_id: string(),
       rank: number(),
       published_at: nullable(date()),
       user_state: nullable(chapterUserState),
@@ -148,56 +151,86 @@ const bookSummaryOutput = object({
 export const bookSummary = createResource({
   input: combineReturnTypes<{
     book: (typeof BookRepo)['get']['byIdLatestUpdated'];
+    bookStates: (typeof BookRepo)['get']['booksStates'];
     userState: (typeof BookRepo)['userStates']['get']['byId'] | undefined;
   }>,
   output: bookSummaryOutput,
-  map: ({ book, userState }) => ({
-    id: book.id,
-    title: book.title,
-    description: book.description,
-    last_chapter_updated_at: book.last_chapter_updated_at,
-    cover_url:
-      book.cover_s3_key && book.cover_s3_bucket
-        ? formatPublicS3Url(book.cover_s3_bucket, book.cover_s3_key)
-        : null,
-    bookmarked: userState?.bookmarked ?? false,
-    latests_chapters: book.sourceBooks.flatMap((sb) =>
-      sb.chapters.map((chapter) => {
-        const userState = chapter.userState
-          ? {
-              chapter_id: chapter.id,
-              percentage: chapter.userState.percentage ?? 0,
-              read: chapter.userState.read ?? false,
-              current_page: chapter.userState.current_page ?? 0,
-            }
-          : null;
+  map: ({ book, bookStates, userState }) => {
+    const stateBySource = keyBy(
+      bookStates,
+      (state) => `${state.source_id}::${state.source_book_id}`,
+    );
 
-        return {
-          id: chapter.id,
-          rank: chapter.chapter_rank,
-          published_at: chapter.published_at,
-          user_state: userState,
-        };
-      }),
-    ),
-  }),
+    const bookState = book.sourceBooks.map(
+      (sb) => stateBySource[`${sb.source_id}::${sb.source_book_id}`],
+    );
+
+    return {
+      id: book.id,
+      title: book.title,
+      description: book.description,
+      last_chapter_updated_at: book.last_chapter_updated_at,
+      unread_chapters_count: Math.max(
+        0,
+        ...bookState.map((state) => state?.unread_count ?? 0),
+      ),
+      cover_url:
+        book.cover_s3_key && book.cover_s3_bucket
+          ? formatPublicS3Url(book.cover_s3_bucket, book.cover_s3_key)
+          : null,
+      bookmarked: userState?.bookmarked ?? false,
+      latests_chapters: book.sourceBooks.flatMap((sb) =>
+        sb.chapters.map((chapter) => {
+          const userState = chapter.userState
+            ? {
+                chapter_id: chapter.id,
+                percentage: chapter.userState.percentage ?? 0,
+                read: chapter.userState.read ?? false,
+                current_page: chapter.userState.current_page ?? 0,
+              }
+            : null;
+
+          return {
+            id: chapter.id,
+            chapter_id: chapter.chapter_id,
+            rank: chapter.chapter_rank,
+            published_at: chapter.published_at,
+            user_state: userState,
+          };
+        }),
+      ),
+    };
+  },
 });
 
 export const bookSummaries = createResource({
   input: combineReturnTypes<{
     books: (typeof BookRepo)['get']['latestUpdateds'];
+    bookStates: (typeof BookRepo)['get']['booksStates'];
     userStates: (typeof BookRepo)['userStates']['list'];
   }>,
   output: array(bookSummaryOutput),
-  map: ({ books, userStates }) => {
+  map: ({ books, bookStates, userStates }) => {
     const stateByBookId = keyBy(userStates, (state) => state.book_id);
+    const stateBySource = keyBy(
+      bookStates,
+      (state) => `${state.source_id}::${state.source_book_id}`,
+    );
 
     return books.map((book) => {
+      const bookStates = book.sourceBooks.map(
+        (sb) => stateBySource[`${sb.source_id}::${sb.source_book_id}`] ?? [],
+      );
+
       return {
         id: book.id,
         title: book.title,
         description: book.description,
         last_chapter_updated_at: book.last_chapter_updated_at,
+        unread_chapters_count: Math.max(
+          0,
+          ...bookStates.map((state) => state?.unread_count ?? 0),
+        ),
         cover_url:
           book.cover_s3_key && book.cover_s3_bucket
             ? formatPublicS3Url(book.cover_s3_bucket, book.cover_s3_key)
@@ -216,6 +249,7 @@ export const bookSummaries = createResource({
 
             return {
               id: chapter.id,
+              chapter_id: chapter.chapter_id,
               rank: chapter.chapter_rank,
               published_at: chapter.published_at,
               user_state: userState,

@@ -49,11 +49,6 @@ export const API = {
           `/books/${bookId}/chapter/${chapterId}`,
         result: json<{
           chapter: ApiChapter;
-          user_state?: {
-            current_page: number;
-            percentage: number;
-            read: boolean;
-          };
         }>,
       }),
       saveReadProgress: put({

@@ -45,12 +45,16 @@ const handler: EndpointHandler<typeof conf> = async ({
     const userStates = await BookRepo.userStates.list(
       books.map((book) => book.id),
     );
+    const bookStates = await BookRepo.get.booksStates(
+      books.flatMap((book) => book.sourceBooks.map((sb) => sb.source_book_id)),
+    );
 
     return {
       status: 200,
       data: {
         books: {
           books,
+          bookStates,
           userStates,
         },
       },

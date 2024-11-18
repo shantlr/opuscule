@@ -10,15 +10,18 @@ export type ApiBookSummary = {
   title: string;
   description: string;
   cover_url: string | null;
+  unread_chapters_count: number;
   last_chapter_updated_at: Date | null;
   latests_chapters: ApiChapterSummary[];
   bookmarked: boolean;
 };
 
 export type ApiBookDetail = ApiBookSummary & {
-  sourceBooks: ApiSourceBook[];
+  source_books: ApiSourceBook[];
 };
 export type ApiSourceBook = {
+  source_id: string;
+  source_book_id: string;
   chapters: ApiChapterSummary[];
 };
 
@@ -31,7 +34,7 @@ export type ApiChapterPage = {
 export type ApiChapterSummary = {
   id: string;
   chapter_id: string;
-  chapter_rank: number;
+  rank: number;
   published_at: Date | null;
   source_id: string;
   user_state: {
@@ -44,9 +47,14 @@ export type ApiChapterSummary = {
 export type ApiChapter = {
   id: string;
   chapter_id: string;
-  chapter_rank: number;
+  rank: number;
   published_at: Date | null;
   source_book_id: string;
   source_id: string;
   pages: ApiChapterPage[] | undefined;
+  user_state?: {
+    current_page: number;
+    percentage: number;
+    read: boolean;
+  };
 };

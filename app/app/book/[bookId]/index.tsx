@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
-import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import { flatMap, groupBy, map, sortBy } from 'lodash';
 import { useMemo, useRef, useState } from 'react';
@@ -23,6 +22,7 @@ import { ApiBookDetail } from '@/common/api/types';
 import { dayjs } from '@/common/dayjs';
 import { useIsMobile } from '@/common/hooks/use-screen-size';
 import { useTypedLocalSearchParams } from '@/common/navigation/use-local-search-params';
+import { Image } from '@/common/ui/image';
 import { BackNav } from '@/common/ui/layouts/back-nav';
 import { HEADER_HEIGHT } from '@/common/ui/layouts/mobile-screen-header';
 import {
@@ -33,14 +33,14 @@ import {
 
 const ChapterList = ({ book }: { book: ApiBookDetail | undefined }) => {
   const chapters = useMemo(() => {
-    const flattened = flatMap(book?.sourceBooks, (sb) => sb.chapters);
-    const grouped = groupBy(flattened, (c) => c.chapter_rank);
+    const flattened = flatMap(book?.source_books, (sb) => sb.chapters);
+    const grouped = groupBy(flattened, (c) => c.rank);
     return sortBy(
       map(grouped, (g) => ({
         ...g[0],
         sources: g.map((c) => c.source_id),
       })),
-      (c) => -c.chapter_rank,
+      (c) => -c.rank,
     );
   }, [book]);
 
@@ -190,7 +190,7 @@ function MobileScreen({ data }: { data: ReturnType<typeof useBook>['data'] }) {
           if (
             event.nativeEvent.contentOffset.y +
               event.nativeEvent.layoutMeasurement.height >=
-            event.nativeEvent.contentSize.height
+            event.nativeEvent.contentSize.height - 1
           ) {
             setCardBottomReached(true);
           } else {
@@ -211,7 +211,7 @@ function MobileScreen({ data }: { data: ReturnType<typeof useBook>['data'] }) {
             ref={cardScrollView}
             scrollEnabled={cardBottomReached}
             scrollEventThrottle={1}
-            className="rounded-t-xl"
+            className="rounded-t-xl pb-8"
             onScroll={(event) => {
               const y = event.nativeEvent.contentOffset.y;
               if (y <= 24) {

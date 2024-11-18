@@ -1,9 +1,9 @@
-import { Image } from 'expo-image';
 import { findLastIndex } from 'lodash';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import { useTypedLocalSearchParams } from '@/common/navigation/use-local-search-params';
+import { Image } from '@/common/ui/image';
 import { MobileScreenHeader } from '@/common/ui/layouts/mobile-screen-header';
 import {
   useBookChapter,
@@ -62,20 +62,26 @@ export default function ChapterScreen() {
     ) {
       return;
     }
-    if (!data.user_state) {
+
+    if (!data.chapter?.user_state) {
       setProgressInited(true);
       return;
     }
 
-    const y =
-      scrollHeight.contentHeight * data.user_state.percentage -
-      scrollHeight.height;
+    const { percentage } = data.chapter.user_state;
+
+    const y = scrollHeight.contentHeight * percentage - scrollHeight.height;
     scrollViewRef.current?.scrollTo({
       y,
       animated: false,
     });
     setProgressInited(true);
-  }, [data?.chapter?.pages, data?.user_state, progressInited, scrollHeight]);
+  }, [
+    data?.chapter?.pages,
+    data?.chapter?.user_state,
+    progressInited,
+    scrollHeight,
+  ]);
 
   // save progress
   useEffect(() => {
@@ -163,9 +169,9 @@ export default function ChapterScreen() {
         {data?.chapter?.pages?.map((page, index) => (
           <View key={index}>
             <Image
-              className="w-full"
               style={{
                 height: page.height * (Math.min(width ?? 0, 500) / page.width),
+                width: '100%',
               }}
               contentFit="contain"
               source={page.url}

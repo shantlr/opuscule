@@ -74,22 +74,39 @@ export const BookCard = ({
         params: { bookId: book.id },
       }}
       className={clsx(
-        'flex flex-row w-[320px] overflow-hidden p-2 bg-secondarybg rounded-xl cursor-pointer',
+        'flex flex-row w-[320px] overflow-hidden p-2 rounded-xl cursor-pointer',
+        {
+          'bg-secondarybg': !book.bookmarked,
+          'bg-accent': !!book.bookmarked,
+        },
         'gap-2',
         'transition-all',
         'web:hover:scale-105',
       )}
     >
       <View className="shrink grow w-[320px]">
-        <Text className="font-bold pl-2 pt-2 mb-2">{book.title}</Text>
+        <Text className="font-bold pl-2 pt-2 mb-2">
+          {!!book.bookmarked && (
+            <View className="mr-2 text-white ">
+              <Text>{book.unread_chapters_count}</Text>
+            </View>
+          )}
+          {book.title}
+        </Text>
         <View className="flex flex-col">
           {book.latests_chapters.map((chapter) => (
             <View
-              className="p-2 hover:bg-mainbg rounded transition-all"
+              className="p-2 hover:bg-mainbg group rounded transition-all"
               key={chapter.id}
             >
               <Text className="">Chapter {chapter.chapter_id}</Text>
-              <Text className="text-light">
+              <Text
+                className={clsx({
+                  'text-light': !book.bookmarked,
+                  'text-white': !!book.bookmarked,
+                  'group-hover:text-light': book.bookmarked,
+                })}
+              >
                 {chapter.published_at
                   ? dayjs(chapter.published_at).fromNow()
                   : null}
@@ -99,7 +116,7 @@ export const BookCard = ({
         </View>
       </View>
       <View>
-        <View className="rounded-xl overflow-hidden">
+        <View className="relative rounded-xl overflow-hidden">
           <Image
             source={book.cover_url}
             style={{
@@ -107,6 +124,24 @@ export const BookCard = ({
               height: 230,
             }}
           />
+          <TouchableOpacity
+            className="absolute top-2 right-2 rounded-xl shadow-md shadow-accent p-1 bg-black/50"
+            onPress={(event) => {
+              event.stopPropagation?.();
+              event.preventDefault?.();
+              if (book.bookmarked) {
+                unbookmark({ id: book.id });
+              } else {
+                bookmark({ id: book.id });
+              }
+            }}
+          >
+            <Ionicons
+              size={24}
+              name={book?.bookmarked ? 'bookmark' : 'bookmark-outline'}
+              className="text-white"
+            />
+          </TouchableOpacity>
         </View>
       </View>
     </LinkPressable>

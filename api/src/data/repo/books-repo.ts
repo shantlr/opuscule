@@ -1,6 +1,15 @@
 import { db } from 'data/db';
 import { Book, UserBookState, Chapter, UserChapterState } from 'data/schema';
-import { SQL, and, desc, eq, inArray, notInArray } from 'drizzle-orm';
+import {
+  SQL,
+  and,
+  count,
+  desc,
+  eq,
+  inArray,
+  notInArray,
+  isNull,
+} from 'drizzle-orm';
 
 export const BookRepo = {
   get: {
@@ -81,6 +90,23 @@ export const BookRepo = {
           },
         },
       });
+    },
+    booksStates: async (sourceBookIds: string[]) => {
+      return db
+        .select({
+          source_id: Chapter.source_id,
+          source_book_id: Chapter.source_book_id,
+          unread_count: count(),
+        })
+        .from(Chapter)
+        .where(
+          and(
+            inArray(Chapter.source_book_id, sourceBookIds),
+            isNull(UserChapterState.chapter_id),
+          ),
+        )
+        .leftJoin(UserChapterState, eq(Chapter.id, UserChapterState.chapter_id))
+        .groupBy(Chapter.source_id, Chapter.source_book_id);
     },
     byIdLatestUpdated: async (id: string) => {
       const res = await BookRepo.get.latestUpdateds({

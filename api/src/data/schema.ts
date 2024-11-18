@@ -133,7 +133,9 @@ export const UserBookState = sqliteTable(
 export const UserChapterState = sqliteTable(
   'user_chapter_states',
   {
-    chapter_id: text('chapter_id').notNull(),
+    chapter_id: text('chapter_id')
+      .notNull()
+      .references(() => Chapter.id),
     read: integer('read', { mode: 'boolean' }).$defaultFn(() => false),
     percentage: real('percentage').$defaultFn(() => 0),
     current_page: integer('current_page').$defaultFn(() => 0),
