@@ -4,10 +4,12 @@ import { Sources, fetchBookChapter } from 'sources';
 
 export const fetchChapter = async ({
   chapterId,
+  force,
   logger = defaultLogger,
 }: {
   chapterId: string;
   logger?: Logger;
+  force?: boolean;
 }) => {
   const log = logger.scope('fetch-chapter');
   const chapter = await BookRepo.chapters.get.byId(chapterId);
@@ -24,5 +26,7 @@ export const fetchChapter = async ({
     return;
   }
 
-  await fetchBookChapter(source, chapter.source_book_id, chapter.chapter_id);
+  await fetchBookChapter(source, chapter.source_book_id, chapter.chapter_id, {
+    force,
+  });
 };

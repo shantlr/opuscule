@@ -33,8 +33,14 @@ export const fetchBookChapter = async (
   source: ISource,
   sourceBookId: string,
   chapterId: string,
+  opt?: {
+    force?: boolean;
+  },
 ) => {
-  const context = createContext({ sourceId: source.id });
+  const context = createContext({
+    sourceId: source.id,
+    skipCache: opt?.force,
+  });
 
   await source.entries.book.fetchChapter({ sourceBookId, chapterId }, context);
 };

@@ -260,7 +260,8 @@ export const sourceAsuraScan = {
               .object({
                 url: z.string(),
               })
-              .array(),
+              .array()
+              .min(1),
           })
           .parse(res);
 

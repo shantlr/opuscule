@@ -40,6 +40,9 @@ const handler: EndpointHandler<typeof conf> = async ({ params: { id } }) => {
         },
       };
     }
+    const bookStates = await BookRepo.get.booksStates(
+      updated.sourceBooks.map((s) => s.source_book_id),
+    );
     const userState = await BookRepo.userStates.get.byId(id);
 
     return {
@@ -47,6 +50,7 @@ const handler: EndpointHandler<typeof conf> = async ({ params: { id } }) => {
       data: {
         book: {
           book: updated,
+          bookStates,
           userState,
         },
       },

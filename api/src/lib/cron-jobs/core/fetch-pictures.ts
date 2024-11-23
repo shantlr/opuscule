@@ -85,7 +85,7 @@ export const fetchPictures = async (
           height: number;
         }[] = [];
         log.info(
-          `start fetching chapter pages for ${job.source_id}/${job.source_book_id}/${job.source_chapter_id}...`,
+          `start fetching chapter pages (${job.pages.length}) for ${job.source_id}/${job.source_book_id}/${job.source_chapter_id}...`,
         );
         for (const [index, page] of job.pages.entries()) {
           const test = await fetch(page.url, {

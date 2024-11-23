@@ -58,6 +58,7 @@ export type OpOutput<T> = T extends OpText | OpAttr
         : never;
 
 export type FetchPage = {
+  html: string;
   /**
    * Execute operation on current page
    */

@@ -12,7 +12,7 @@ const conf = endpointConf({
     page: number(),
   }),
   responses: {
-    200: null,
+    200: object({}),
     500: null,
   },
 });
@@ -29,7 +29,7 @@ const handler: EndpointHandler<typeof conf> = async ({
     });
     return {
       status: 200,
-      data: null,
+      data: {},
     };
   } catch (err) {
     logger.error(err);

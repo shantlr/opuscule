@@ -20,6 +20,7 @@ import { FetchPictureJob, fetchPictures } from './fetch-pictures';
 export const createPage = ({ data }: { data: string }): FetchPage => {
   const $ = cheerio.load(data);
   const page: FetchPage = {
+    html: data,
     map: (op) => {
       return execOperations($, op);
     },
@@ -153,9 +154,11 @@ export const createFetcherSession = async (
 export const createContext = ({
   sourceId,
   logger = defaultLogger,
+  skipCache,
 }: {
   sourceId: string;
   logger?: Logger;
+  skipCache?: boolean;
 }): SourceContext => {
   const source = Sources.find((s) => s.id === sourceId);
   if (!source) {
@@ -166,9 +169,10 @@ export const createContext = ({
     logger,
     initFetcherSession: async (options) => {
       const sessionId = options?.sessionId ?? sourceId;
-      const prevSession = !options?.ignorePrevSession
-        ? await FetchSessionRepo.get.byKey(sessionId)
-        : undefined;
+      const prevSession =
+        skipCache || !options?.ignorePrevSession
+          ? await FetchSessionRepo.get.byKey(sessionId)
+          : undefined;
       return createFetcherSession(sessionId, prevSession, {
         ...options,
         baseUrl: options?.baseUrl ?? source.url,
