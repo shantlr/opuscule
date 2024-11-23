@@ -11,9 +11,10 @@ import $4 from './books/$id.bookmark.post';
 import $5 from './books/$id.chapter.$chapterId.get';
 import $6 from './books/$id.refetch.post';
 import $7 from './chapters/$id.read-progress.put';
-import $8 from './sources/get';
-import $9 from './sources/$id.subscribe.delete';
-import $10 from './sources/$id.subscribe.post';
+import $8 from './chapters/$id.source.raw.get';
+import $9 from './sources/get';
+import $10 from './sources/$id.subscribe.delete';
+import $11 from './sources/$id.subscribe.post';
 
 const router = Router();
 
@@ -47,14 +48,18 @@ if (isRouteEndpointModule($7)) {
 }
 if (isRouteEndpointModule($8)) {
   const route = createRoute($8, { middlewares: [$0] });
-  router.get('/sources', route.handler);
+  router.get('/chapters/:id/source/raw', route.handler);
 }
 if (isRouteEndpointModule($9)) {
   const route = createRoute($9, { middlewares: [$0] });
-  router.delete('/sources/:id/subscribe', route.handler);
+  router.get('/sources', route.handler);
 }
 if (isRouteEndpointModule($10)) {
   const route = createRoute($10, { middlewares: [$0] });
+  router.delete('/sources/:id/subscribe', route.handler);
+}
+if (isRouteEndpointModule($11)) {
+  const route = createRoute($11, { middlewares: [$0] });
   router.post('/sources/:id/subscribe', route.handler);
 }
 export const openapiJson = createOpenapiJson(
@@ -68,9 +73,10 @@ export const openapiJson = createOpenapiJson(
     { method: 'get', path: '/books/:id/chapter/:chapterId', module: $5 },
     { method: 'post', path: '/books/:id/refetch', module: $6 },
     { method: 'put', path: '/chapters/:id/read-progress', module: $7 },
-    { method: 'get', path: '/sources', module: $8 },
-    { method: 'delete', path: '/sources/:id/subscribe', module: $9 },
-    { method: 'post', path: '/sources/:id/subscribe', module: $10 },
+    { method: 'get', path: '/chapters/:id/source/raw', module: $8 },
+    { method: 'get', path: '/sources', module: $9 },
+    { method: 'delete', path: '/sources/:id/subscribe', module: $10 },
+    { method: 'post', path: '/sources/:id/subscribe', module: $11 },
   ],
 );
 router.get('/docs/openapi.json', (req, res) => {

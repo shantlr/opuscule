@@ -36,10 +36,12 @@ const chapterRankSchema = z
     return Number(m?.groups?.id?.replace('-', '.'));
   });
 
-export const sourceFlamescans = {
+export const sourceFlamescans: ISource<'flamescans'> = {
   id: 'flamescans',
   name: 'Flame Scans',
   url: 'https://flamecomics.xyz/',
+  formatChapterUrl: ({ sourceBookKey, chapterId }) =>
+    `${sourceFlamescans.url}/${sourceBookKey}-chapter-${chapterId}`,
   entries: {
     fetchLatests: async (context) => {
       const session = await context.initFetcherSession({
@@ -253,7 +255,11 @@ export const sourceFlamescans = {
 
         const session = await context.initFetcherSession();
         const page = await session.go(
-          `/${sourceBook?.source_book_key}-chapter-${chapterId}`,
+          sourceFlamescans.formatChapterUrl({
+            sourceBookKey: sourceBook.source_book_key,
+            chapterId,
+          }),
+          // `/${sourceBook?.source_book_key}-chapter-${chapterId}`,
         );
         const res = page.map({
           type: 'object',
@@ -283,4 +289,4 @@ export const sourceFlamescans = {
       },
     },
   },
-} satisfies ISource;
+};

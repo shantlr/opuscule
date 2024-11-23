@@ -111,6 +111,9 @@ export const QUERY_KEYS = createKeyTree({
         [K]: () => 'chapters',
         id: {
           [K]: ({ chapterId }: { chapterId: string }) => chapterId,
+          raw: {
+            [K]: () => 'raw',
+          },
         },
       },
     },

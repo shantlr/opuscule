@@ -117,10 +117,15 @@ export type SourceContext = {
   };
 };
 
-export type ISource = {
-  id: string;
+export type ISource<Id extends string = string> = {
+  id: Id;
   name: string;
   url: string;
+
+  formatChapterUrl: (arg: {
+    sourceBookKey: string;
+    chapterId: string;
+  }) => string;
 
   entries: {
     fetchLatests: (context: SourceContext) => void | Promise<void>;

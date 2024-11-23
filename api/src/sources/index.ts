@@ -6,11 +6,11 @@ import { sourceFlamescans } from './flamescans.js';
 import { sourceRizzfables } from './rizzfables.js';
 import { ISource } from './types.js';
 
-export const Sources = [
+export const Sources: ISource[] = [
   sourceAsuraScan,
   sourceRizzfables,
   sourceFlamescans,
-] satisfies ISource[];
+];
 
 export const SourcesByID = keyBy(Sources, (s) => s.id);
 

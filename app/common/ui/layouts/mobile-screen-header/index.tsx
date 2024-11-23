@@ -1,4 +1,5 @@
 import { Href } from 'expo-router';
+import { ReactNode } from 'react';
 import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -9,9 +10,13 @@ export const HEADER_HEIGHT = 48;
 export function MobileScreenHeader<Back extends object>({
   back,
   title,
+  actions,
 }: {
   back?: Href<Back>;
   title: string;
+  actions?: {
+    icon?: ReactNode;
+  };
 }) {
   const safeArea = useSafeAreaInsets();
 
@@ -21,7 +26,7 @@ export function MobileScreenHeader<Back extends object>({
         paddingTop: safeArea.top,
         height: 48 + safeArea.top,
       }}
-      className="flex flex-row shrink-0 items-center bg-secondarybg overflow-hidden relative"
+      className="flex flex-row shrink-0 items-center bg-transparent overflow-hidden relative"
     >
       <Text className="w-full flex text-center flex-row justify-center items-center text-lg">
         {title}
@@ -37,6 +42,7 @@ export function MobileScreenHeader<Back extends object>({
           <BackNav href={back} />
         </View>
       )}
+      {!!actions && actions.icon}
     </View>
   );
 }

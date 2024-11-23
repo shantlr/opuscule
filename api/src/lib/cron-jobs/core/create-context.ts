@@ -49,7 +49,7 @@ const createFetcher = async (
   return {
     async fetch(url: string, options?: OptionsOfTextResponseBody) {
       const cacheKey = `${session.key}:${url}`;
-      const cacheData = await HtmlCacheRepo.get(cacheKey);
+      const cacheData = await HtmlCacheRepo.get.byUrl(cacheKey);
       if (cacheData?.data) {
         log.info(`[fetcher-session] resolved page from cache '${cacheKey}'`);
         return cacheData.data;

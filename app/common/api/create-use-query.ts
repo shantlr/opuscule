@@ -20,20 +20,25 @@ const createUseQuery = <
     params,
     enabled,
   }: {
-    queryKey: QueryKey | ((args: HookArgs) => QueryKey);
+    queryKey: QueryKey | ((args: Parameters<QueryFn>[0]) => QueryKey);
     params?: NotOverrideabledArgs;
     enabled?: (args: HookArgs) => boolean;
   },
 ) => {
   const useApiQuery = (hookArgs: HookArgs) => {
+    const isEnabled = typeof enabled === 'function' ? enabled(hookArgs) : true;
     return useQuery<Awaited<ReturnType<QueryFn>>>({
       queryFn: () =>
         fn({
           ...hookArgs,
           ...params,
         }),
-      queryKey: typeof queryKey === 'function' ? queryKey(hookArgs) : queryKey,
-      enabled: typeof enabled === 'function' ? enabled(hookArgs) : true,
+      queryKey: !isEnabled
+        ? []
+        : typeof queryKey === 'function'
+          ? queryKey(hookArgs)
+          : queryKey,
+      enabled: isEnabled,
     });
   };
 

@@ -1,18 +1,27 @@
 import { ACCURACY } from 'config/constants';
+import { logger } from 'config/logger';
 import { SourceRepo } from 'data/repo/source';
 import { fetchPictures } from 'lib/cron-jobs/core/fetch-pictures';
 import { joinUrl } from 'lib/utils/join-url';
 import { parseFullFormattedDate } from 'lib/utils/parse-formatted-date';
 import { parseFormattedRelativeDate } from 'lib/utils/parse-relative-date';
-import { uniqBy } from 'lodash';
+import { uniq, uniqBy } from 'lodash';
 import { z } from 'zod';
 
 import { ISource } from './types';
 
-export const sourceAsuraScan = {
+export const sourceAsuraScan: ISource<'asurascan'> = {
   id: 'asurascan',
   name: 'Asura Scan',
   url: 'https://asuracomic.net',
+
+  formatChapterUrl: ({
+    sourceBookKey,
+    chapterId,
+  }: {
+    sourceBookKey: string;
+    chapterId: string;
+  }) => `${sourceAsuraScan.url}/series/${sourceBookKey}/chapter/${chapterId}`,
 
   entries: {
     fetchLatests: async (context) => {
@@ -232,38 +241,62 @@ export const sourceAsuraScan = {
           sourceAsuraScan.id,
           sourceBookId,
         );
+        if (!sourceBook?.source_book_key) {
+          logger.info(`source book not found '${sourceBookId}'`);
+          return;
+        }
+
         const session = await context.initFetcherSession();
         const page = await session.go(
-          `/series/${sourceBook?.source_book_key}/chapter/${chapterId}`,
+          sourceAsuraScan.formatChapterUrl({
+            sourceBookKey: sourceBook.source_book_key,
+            chapterId,
+          }),
         );
 
-        const res = page.map({
-          type: 'object',
-          fields: {
-            pages: {
-              type: 'map',
-              query: 'div.py-8 > div.w-full.mx-auto.center',
-              item: {
-                url: {
-                  type: 'attr',
-                  query: `img.object-cover.mx-auto`,
-                  name: 'src',
-                },
-              },
-            },
-          },
-        });
+        const matches = uniq(
+          page.html.match(
+            /https:\/\/gg.asuracomic.net\/storage\/media\/\d+\/conversions\/\d{2}-optimized.webp/g,
+          ),
+        );
+        const pages = z
+          .string()
+          .array()
+          .min(1)
+          .transform((v) =>
+            v.map((url) => ({
+              url,
+            })),
+          )
+          .parse(matches);
+        // console.log(pages);
+        // const res = page.map({
+        //   type: 'object',
+        //   fields: {
+        //     pages: {
+        //       type: 'map',
+        //       query: 'div.py-8 > div.w-full.mx-auto.center',
+        //       item: {
+        //         url: {
+        //           type: 'attr',
+        //           query: `img.object-cover.mx-auto`,
+        //           name: 'src',
+        //         },
+        //       },
+        //     },
+        //   },
+        // });
 
-        const results = z
-          .object({
-            pages: z
-              .object({
-                url: z.string(),
-              })
-              .array()
-              .min(1),
-          })
-          .parse(res);
+        // const results = z
+        //   .object({
+        //     pages: z
+        //       .object({
+        //         url: z.string(),
+        //       })
+        //       .array()
+        //       .min(1),
+        //   })
+        //   .parse(res);
 
         await fetchPictures([
           {
@@ -271,10 +304,10 @@ export const sourceAsuraScan = {
             source_id: sourceAsuraScan.id,
             source_book_id: sourceBookId,
             source_chapter_id: chapterId,
-            pages: results.pages,
+            pages: pages,
           },
         ]);
       },
     },
   },
-} as const satisfies ISource;
+};

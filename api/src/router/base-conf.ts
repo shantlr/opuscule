@@ -25,6 +25,12 @@ export const ROUTES = {
         chapterId: string(),
       }),
     },
+    '/chapters/:id/source/raw': {
+      expressPath: '/chapters/:id/source/raw',
+      params: object({
+        id: string(),
+      }),
+    },
     '/sources': {
       expressPath: '/sources',
       params: object({}),

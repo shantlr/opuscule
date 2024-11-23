@@ -16,10 +16,12 @@ const chapterId = z
   );
 const chapterRank = chapterId.transform((v) => Number(v));
 
-export const sourceRizzfables = {
+export const sourceRizzfables: ISource<'rizzfables'> = {
   id: 'rizzfables',
   name: 'Rizzfables',
   url: 'https://rizzfables.com',
+  formatChapterUrl: ({ sourceBookKey, chapterId }) =>
+    `${sourceRizzfables.url}/chapter/${sourceBookKey}-chapter-${chapterId}`,
   entries: {
     fetchLatests: async (context) => {
       const session = await context.initFetcherSession({
@@ -259,7 +261,10 @@ export const sourceRizzfables = {
 
         const session = await context.initFetcherSession();
         const page = await session.go(
-          `/chapter/${sourceBook?.source_book_key}-chapter-${chapterId}`,
+          sourceRizzfables.formatChapterUrl({
+            sourceBookKey: sourceBook.source_book_key!,
+            chapterId,
+          }),
         );
         const res = page.map({
           type: 'object',
@@ -299,4 +304,4 @@ export const sourceRizzfables = {
       },
     },
   },
-} as const satisfies ISource;
+};

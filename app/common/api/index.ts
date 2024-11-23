@@ -62,6 +62,12 @@ export const API = {
         body: (arg) => omit(arg, ['chapterId']),
         result: json<Record<never, never>>,
       }),
+      source: {
+        raw: get({
+          path: ({ id }: { id: string }) => `/chapters/${id}/source/raw`,
+          result: json<{ content: string | null } | null>,
+        }),
+      },
     },
   },
 };
