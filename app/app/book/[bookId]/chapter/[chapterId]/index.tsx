@@ -7,6 +7,8 @@ import { Image } from '@/common/ui/image';
 import { MobileScreenHeader } from '@/common/ui/layouts/mobile-screen-header';
 import { useBookChapter, useSaveReadProgress } from '@/features/books/use-book';
 
+const MAX_WIDTH = 650;
+
 export default function ChapterScreen() {
   const { chapterId, bookId } = useTypedLocalSearchParams(
     '/book/[bookId]/chapter/[chapterId]',
@@ -167,7 +169,8 @@ export default function ChapterScreen() {
           <View key={index}>
             <Image
               style={{
-                height: page.height * (Math.min(width ?? 0, 500) / page.width),
+                height:
+                  page.height * (Math.min(width ?? 0, MAX_WIDTH) / page.width),
                 width: '100%',
               }}
               contentFit="contain"

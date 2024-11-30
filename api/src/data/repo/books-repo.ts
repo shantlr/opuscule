@@ -163,6 +163,7 @@ export const BookRepo = {
         percentage: number;
         page: number;
       }) => {
+        const read = percentage >= 0.99;
         await db
           .insert(UserChapterState)
           .values({
@@ -175,9 +176,15 @@ export const BookRepo = {
             set: {
               percentage,
               current_page: page,
-              read: percentage >= 0.99,
+              read,
             },
           });
+
+        if (read) {
+          await UserStateRepo.sync.onChapterReadDone({
+            chapterId,
+          });
+        }
       },
       pages: async ({
         sourceBookId,

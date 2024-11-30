@@ -27,9 +27,15 @@ export default function Index() {
         )}
         {!!unreadBookmarked?.books?.length && (
           <View className="w-full mt-8">
+            <Text role="heading" className="mb-2 mx-4 text-xl">
+              Favorites
+            </Text>
             <BooksCarousel books={unreadBookmarked?.books} />
           </View>
         )}
+        <Text role="heading" className="mb-2 mx-4 text-xl">
+          Latests
+        </Text>
         <BooksGrid books={data?.books}></BooksGrid>
       </ScrollView>
     </SafeAreaView>

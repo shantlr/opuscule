@@ -257,7 +257,7 @@ export default function BookDetailsScreen() {
   }
 
   return (
-    <View>
+    <ScrollView>
       <MobileScreenHeader
         back={{
           pathname: '/',
@@ -286,6 +286,6 @@ export default function BookDetailsScreen() {
         </View>
         <ChapterList book={data?.book} />
       </ScrollView>
-    </View>
+    </ScrollView>
   );
 }

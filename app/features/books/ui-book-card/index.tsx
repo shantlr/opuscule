@@ -60,6 +60,11 @@ export const BookCard = ({
         </View>
         <View>
           <Text className="text-light">
+            {!!book.bookmarked && (
+              <View className="mr-1 text-accent border border-accent rounded px-1">
+                <Text>{book.unread_chapters_count}</Text>
+              </View>
+            )}
             Chapter {book.latests_chapters[0]?.chapter_id}
           </Text>
         </View>
@@ -87,7 +92,7 @@ export const BookCard = ({
       <View className="shrink grow w-[320px]">
         <Text className="font-bold pl-2 pt-2 mb-2">
           {!!book.bookmarked && (
-            <View className="mr-2 text-white ">
+            <View className="mr-1 text-white border border-white rounded px-1">
               <Text>{book.unread_chapters_count}</Text>
             </View>
           )}
