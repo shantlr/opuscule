@@ -161,7 +161,7 @@ export const bookSummary = createResource({
       (state) => `${state.source_id}::${state.source_book_id}`,
     );
 
-    const bookState = book.sourceBooks.map(
+    const sourceBookStates = book.sourceBooks.map(
       (sb) => stateBySource[`${sb.source_id}::${sb.source_book_id}`],
     );
 
@@ -172,7 +172,7 @@ export const bookSummary = createResource({
       last_chapter_updated_at: book.last_chapter_updated_at,
       unread_chapters_count: Math.max(
         0,
-        ...bookState.map((state) => state?.unread_count ?? 0),
+        ...sourceBookStates.map((state) => state?.unread_count ?? 0),
       ),
       cover_url:
         book.cover_s3_key && book.cover_s3_bucket

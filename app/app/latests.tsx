@@ -1,11 +1,16 @@
 import { Redirect } from 'expo-router';
-import { SafeAreaView, ScrollView, Text } from 'react-native';
+import { SafeAreaView, ScrollView, Text, View } from 'react-native';
 
+import { BooksCarousel } from '@/features/books/ui-books-carousel';
 import { BooksGrid } from '@/features/books/ui-books-grid';
-import { useLastUpdatedBooks } from '@/features/books/use-book';
+import {
+  useBookmarkedUnreadBooks,
+  useLastUpdatedBooks,
+} from '@/features/books/use-book';
 
 export default function Index() {
   const { data, error, isLoading } = useLastUpdatedBooks({});
+  const { data: unreadBookmarked } = useBookmarkedUnreadBooks({});
 
   if (!!data && data.books.length === 0) {
     return <Redirect href="/welcome" />;
@@ -19,6 +24,11 @@ export default function Index() {
           <Text>
             {error instanceof Error ? error.message : 'An error occurred'}
           </Text>
+        )}
+        {!!unreadBookmarked?.books?.length && (
+          <View className="w-full mt-8">
+            <BooksCarousel books={unreadBookmarked?.books} />
+          </View>
         )}
         <BooksGrid books={data?.books}></BooksGrid>
       </ScrollView>

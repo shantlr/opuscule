@@ -10,6 +10,7 @@ import {
   inArray,
   notInArray,
   isNull,
+  gt,
 } from 'drizzle-orm';
 import { fetchBook } from 'lib/cron-jobs/fetch-book';
 import { keyBy } from 'lodash';
@@ -77,27 +78,13 @@ export const BookRepo = {
       }
 
       if (query?.hasUnread) {
+        cond.push(gt(UserBookState.unread_count, 0));
         return await db.query.Book.findMany({
           where: cond.length ? and(...cond) : undefined,
           orderBy: [desc(Book.last_chapter_updated_at)],
           with: {
-            sourceBooks: {
-              with: {
-                chapters: {
-                  columns: {
-                    chapter_id: true,
-                    id: true,
-                    chapter_rank: true,
-                    published_at: true,
-                  },
-                  orderBy: [desc(Chapter.chapter_rank)],
-                  with: {
-                    userState: true,
-                  },
-                  limit: 3,
-                },
-              },
-            },
+            userState: true,
+            sourceBooks: true,
           },
         });
       }

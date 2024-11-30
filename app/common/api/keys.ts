@@ -101,6 +101,9 @@ export const QUERY_KEYS = createKeyTree({
     },
     bookmarked: {
       [K]: 'bookmarked',
+      unread: {
+        [K]: 'unread',
+      },
     },
     id: {
       [K]: ({ bookId }: { bookId: string }) => bookId,
@@ -108,7 +111,7 @@ export const QUERY_KEYS = createKeyTree({
         [K]: 'details',
       },
       chapters: {
-        [K]: () => 'chapters',
+        [K]: 'chapters',
         id: {
           [K]: ({ chapterId }: { chapterId: string }) => chapterId,
           raw: {

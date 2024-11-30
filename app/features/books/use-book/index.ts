@@ -15,6 +15,13 @@ export const useBookmarkedBooks = createUseQuery(API.books.list, {
     bookmarked: true,
   },
 });
+export const useBookmarkedUnreadBooks = createUseQuery(API.books.list, {
+  queryKey: QUERY_KEYS.books.bookmarked.unread({}),
+  params: {
+    bookmarked: true,
+    unread: true,
+  },
+});
 
 export const useBook = createUseQuery(API.books.get, {
   queryKey: ({ id }) => QUERY_KEYS.books.id.details({ bookId: id! }),

@@ -192,6 +192,13 @@ export const SourceBook = sqliteTable(
   }),
 );
 
+export const userBookStateRelations = relations(UserBookState, (rel) => ({
+  book: rel.one(Book, {
+    relationName: 'book',
+    fields: [UserBookState.book_id],
+    references: [Book.id],
+  }),
+}));
 export const sourceRelations = relations(Source, (rel) => ({
   sourceBooks: rel.many(SourceBook, {
     relationName: 'source',
@@ -215,6 +222,11 @@ export const sourceBookRelations = relations(SourceBook, (rel) => ({
 export const bookRelations = relations(Book, (rel) => ({
   sourceBooks: rel.many(SourceBook, {
     relationName: 'book',
+  }),
+  userState: rel.one(UserBookState, {
+    relationName: 'book',
+    fields: [Book.id],
+    references: [UserBookState.book_id],
   }),
 }));
 export const chapterRelations = relations(Chapter, (rel) => ({
