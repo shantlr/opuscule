@@ -1,4 +1,4 @@
-import { omit, pick } from 'lodash';
+import { identity, omit, pick } from 'lodash';
 
 import { ApiBookDetail, ApiBookSummary, ApiChapter, ApiSource } from './types';
 import { del, get, json, post, put } from './utils';
@@ -11,6 +11,16 @@ export const API = {
     }),
     subscribe: post({
       path: ({ id }: { id: string }) => `/sources/${id}/subscribe`,
+    }),
+    subscribeMany: post({
+      path: '/sources/subscribe',
+      body: identity<{ source_ids: string[] }>,
+      result: json<{}>,
+    }),
+    refetchMany: post({
+      path: '/sources/refetch',
+      body: identity<{ source_ids: string[] }>,
+      result: json<{}>,
     }),
     unsubscribe: del({
       path: ({ id }: { id: string }) => `/sources/${id}/subscribe`,

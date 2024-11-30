@@ -1,7 +1,7 @@
 import { ActivityIndicator, View } from 'react-native';
 
-import { useBookmarkedBooks } from '@/features/books/hooks/use-books';
-import { BooksGrid } from '@/features/books/ui/books-grid';
+import { BooksGrid } from '@/features/books/ui-books-grid';
+import { useBookmarkedBooks } from '@/features/books/use-book';
 
 export default function Booked() {
   const { data, isLoading } = useBookmarkedBooks({});

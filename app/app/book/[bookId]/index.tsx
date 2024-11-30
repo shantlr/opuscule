@@ -24,12 +24,15 @@ import { useIsMobile } from '@/common/hooks/use-screen-size';
 import { useTypedLocalSearchParams } from '@/common/navigation/use-local-search-params';
 import { Image } from '@/common/ui/image';
 import { BackNav } from '@/common/ui/layouts/back-nav';
-import { HEADER_HEIGHT } from '@/common/ui/layouts/mobile-screen-header';
+import {
+  HEADER_HEIGHT,
+  MobileScreenHeader,
+} from '@/common/ui/layouts/mobile-screen-header';
 import {
   useBook,
   useBookmarkBook,
   useUnbookmarkBook,
-} from '@/features/books/hooks/use-books';
+} from '@/features/books/use-book';
 
 const ChapterList = ({ book }: { book: ApiBookDetail | undefined }) => {
   const chapters = useMemo(() => {
@@ -254,27 +257,35 @@ export default function BookDetailsScreen() {
   }
 
   return (
-    <ScrollView className="p-2 flex flex-col h-full w-full overflow-auto">
-      {!!error && (
-        <View>
-          <Text>
-            Something failed:{' '}
-            {error instanceof Error ? error.message : String(error)}
-          </Text>
+    <View>
+      <MobileScreenHeader
+        back={{
+          pathname: '/',
+        }}
+        title={data?.book?.title ?? ''}
+      />
+      <ScrollView className="p-2 flex flex-col h-full w-full overflow-auto">
+        {!!error && (
+          <View>
+            <Text>
+              Something failed:{' '}
+              {error instanceof Error ? error.message : String(error)}
+            </Text>
+          </View>
+        )}
+        <View className="w-full mb-8 flex flex-row overflow-hidden">
+          <Image
+            className="w-[200px] shrink-0 h-[300px] object-contain rounded-2xl bg-cover overflow-hidden mr-4"
+            cachePolicy="disk"
+            source={data?.book?.cover_url}
+          />
+          <View className="w-full shrink">
+            <Text>{data?.book?.title}</Text>
+            <Text>{data?.book?.description}</Text>
+          </View>
         </View>
-      )}
-      <View className="w-full mb-8 flex flex-row overflow-hidden">
-        <Image
-          className="w-[200px] shrink-0 h-[300px] object-contain rounded-2xl bg-cover overflow-hidden mr-4"
-          cachePolicy="disk"
-          source={data?.book?.cover_url}
-        />
-        <View className="w-full shrink">
-          <Text>{data?.book?.title}</Text>
-          <Text>{data?.book?.description}</Text>
-        </View>
-      </View>
-      <ChapterList book={data?.book} />
-    </ScrollView>
+        <ChapterList book={data?.book} />
+      </ScrollView>
+    </View>
   );
 }

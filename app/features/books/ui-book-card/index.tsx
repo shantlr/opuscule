@@ -7,7 +7,7 @@ import { ApiBookSummary } from '@/common/api/types';
 import { dayjs } from '@/common/dayjs';
 import { LinkPressable } from '@/common/ui/link-pressable';
 
-import { useBookmarkBook, useUnbookmarkBook } from '../../hooks/use-books';
+import { useBookmarkBook, useUnbookmarkBook } from '../use-book';
 
 export const BookCard = ({
   book,

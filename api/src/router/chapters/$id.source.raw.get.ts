@@ -3,7 +3,7 @@ import { HtmlCacheRepo } from 'data/repo/html-cache';
 import { SourceBookRepo } from 'data/repo/source-book-repo';
 import { endpointConf, EndpointHandler } from 'proute';
 import { Sources } from 'sources';
-import { object, union, literal, string, nullable } from 'valibot';
+import { object, union, literal, string, nullish } from 'valibot';
 
 import { ROUTES } from '../base-conf';
 
@@ -11,7 +11,7 @@ const conf = endpointConf({
   route: ROUTES.get['/chapters/:id/source/raw'],
   responses: {
     200: object({
-      content: nullable(string()),
+      content: nullish(string()),
     }),
     400: object({
       error: union([literal('UNKNOWN_SOURCE'), literal('UNKNOWN_SOURCE_BOOK')]),
@@ -20,11 +20,14 @@ const conf = endpointConf({
   },
 });
 
-const handler: EndpointHandler<typeof conf> = async ({ params: { id } }) => {
+const handler: EndpointHandler<typeof conf> = async ({
+  params: { id },
+}): ReturnType<EndpointHandler<typeof conf>> => {
   const chapter = await BookRepo.chapters.get.byId(id);
   if (!chapter) {
     return {
       status: 404,
+      data: undefined,
     };
   }
 
@@ -53,8 +56,6 @@ const handler: EndpointHandler<typeof conf> = async ({ params: { id } }) => {
       chapterId: chapter.chapter_id,
     })}`,
   );
-
-  console.log('HTML', html);
 
   return {
     status: 200,

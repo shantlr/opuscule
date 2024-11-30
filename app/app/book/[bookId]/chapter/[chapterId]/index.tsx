@@ -5,10 +5,7 @@ import { ScrollView, View } from 'react-native';
 import { useTypedLocalSearchParams } from '@/common/navigation/use-local-search-params';
 import { Image } from '@/common/ui/image';
 import { MobileScreenHeader } from '@/common/ui/layouts/mobile-screen-header';
-import {
-  useBookChapter,
-  useSaveReadProgress,
-} from '@/features/books/hooks/use-books';
+import { useBookChapter, useSaveReadProgress } from '@/features/books/use-book';
 
 export default function ChapterScreen() {
   const { chapterId, bookId } = useTypedLocalSearchParams(

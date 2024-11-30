@@ -72,7 +72,7 @@ export const useSaveReadProgress = createUseMutation(
         queryClient.setQueryData(chapterQueryKey, {
           ...queryData,
           user_state: {
-            ...queryData.user_state,
+            ...queryData.chapter.user_state,
             percentage: variables.percentage,
             page: variables.page,
             read: variables.percentage > 0.98,

@@ -63,6 +63,14 @@ export const ROUTES = {
         id: string(),
       }),
     },
+    '/sources/refetch': {
+      expressPath: '/sources/refetch',
+      params: object({}),
+    },
+    '/sources/subscribe': {
+      expressPath: '/sources/subscribe',
+      params: object({}),
+    },
     '/sources/:id/subscribe': {
       expressPath: '/sources/:id/subscribe',
       params: object({

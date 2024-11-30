@@ -1,10 +1,15 @@
+import { Redirect } from 'expo-router';
 import { SafeAreaView, ScrollView, Text } from 'react-native';
 
-import { useLastUpdatedBooks } from '@/features/books/hooks/use-books';
-import { BooksGrid } from '@/features/books/ui/books-grid';
+import { BooksGrid } from '@/features/books/ui-books-grid';
+import { useLastUpdatedBooks } from '@/features/books/use-book';
 
 export default function Index() {
   const { data, error, isLoading } = useLastUpdatedBooks({});
+
+  if (!!data && data.books.length === 0) {
+    return <Redirect href="/welcome" />;
+  }
 
   return (
     <SafeAreaView className="h-full">

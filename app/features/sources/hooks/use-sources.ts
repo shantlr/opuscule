@@ -12,8 +12,22 @@ export const useSubscribeSource = createUseMutation(API.sources.subscribe, {
     queryClient.invalidateQueries(QUERY_KEYS.sources({}));
   },
 });
+export const useSubscribeSourceMany = createUseMutation(
+  API.sources.subscribeMany,
+  {
+    onSuccess: ({ queryClient }) => {
+      queryClient.invalidateQueries(QUERY_KEYS.sources({}));
+    },
+  },
+);
 export const useUnsubscribeSource = createUseMutation(API.sources.unsubscribe, {
   onSuccess: ({ queryClient }) => {
     queryClient.invalidateQueries(QUERY_KEYS.sources({}));
+  },
+});
+
+export const useRefetchSourceMany = createUseMutation(API.sources.refetchMany, {
+  onSuccess: ({ queryClient }) => {
+    queryClient.invalidateQueries(QUERY_KEYS.books.latests({}));
   },
 });

@@ -3,7 +3,7 @@ import { View } from 'react-native';
 
 import { ApiBookSummary } from '@/common/api/types';
 
-import { BookCard } from '../book-card';
+import { BookCard } from '../ui-book-card';
 
 export const BooksGrid = ({
   books,

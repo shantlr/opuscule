@@ -13,18 +13,19 @@ import {
 
 import { RESOURCES, ROUTES } from '../base-conf';
 
+const coerceBoolean = pipe(
+  union([literal('true'), literal('false')]),
+  example('true'),
+  example('false'),
+
+  transform((v) => v === 'true'),
+);
+
 const conf = endpointConf({
   route: ROUTES.get['/books'],
   query: object({
-    bookmarked: optional(
-      pipe(
-        union([literal('true'), literal('false')]),
-        example('true'),
-        example('false'),
-
-        transform((v) => v === 'true'),
-      ),
-    ),
+    bookmarked: optional(coerceBoolean),
+    has_unread: optional(coerceBoolean),
   }),
   responses: {
     200: pipe(
@@ -38,10 +39,13 @@ const conf = endpointConf({
 });
 
 const handler: EndpointHandler<typeof conf> = async ({
-  query: { bookmarked },
+  query: { bookmarked, has_unread },
 }) => {
   try {
-    const books = await BookRepo.get.latestUpdateds({ bookmarked });
+    const books = await BookRepo.get.latestUpdateds({
+      bookmarked,
+      hasUnread: has_unread,
+    });
     const userStates = await BookRepo.userStates.list(
       books.map((book) => book.id),
     );
