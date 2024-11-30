@@ -5,6 +5,7 @@ import { BookRepo } from 'data/repo/books-repo';
 import { FetchSessionRepo } from 'data/repo/fetch-sessions';
 import { HtmlCacheRepo } from 'data/repo/html-cache';
 import { SourceRepo } from 'data/repo/source';
+import { UserStateRepo } from 'data/repo/use-state';
 import got, { HTTPError, OptionsInit, OptionsOfTextResponseBody } from 'got';
 import { startSession } from 'lib/flare-solverr';
 import { formatCookie } from 'lib/utils/format-cookies';
@@ -12,10 +13,11 @@ import { joinUrl } from 'lib/utils/join-url';
 import { keyBy, sortBy, uniq } from 'lodash';
 import { Sources } from 'sources';
 import { execOperations } from 'sources/exec-op';
-import { FetchPage, FetcherSession, SourceContext } from 'sources/types';
 import { CookieJar } from 'tough-cookie';
 
-import { FetchPictureJob, fetchPictures } from './fetch-pictures';
+import { SourceContext } from './types';
+import { FetcherSession } from './types';
+import { FetchPage } from './types';
 
 export const createPage = ({ data }: { data: string }): FetchPage => {
   const $ = cheerio.load(data);
@@ -182,158 +184,81 @@ export const createContext = ({
       upsert: async (items) => {
         const log = logger.scope('book-upsert');
         await SourceRepo.ensureCreated(sourceId);
-        const itemsById = keyBy(items, (i) => i.id);
 
         //#region Book upsert
-        const existings = await SourceRepo.books.get.listById(
+        const itemsWithSourceBookId = await BookRepo.upsertFromSource(
           sourceId,
-          items.map((i) => i.id),
+          items,
+          log,
         );
 
-        const missings: (Omit<(typeof items)[number], 'title'> & {
-          title: string;
-        })[] = [];
-        const toUpdate: typeof items = [];
-        const coverToFetches: FetchPictureJob[] = [];
-
-        const existingById = keyBy(existings, (b) => b.source_book_id);
-
-        items.forEach((item) => {
-          if (!existingById[item.id]) {
-            missings.push(
-              item as Omit<(typeof items)[number], 'title'> & {
-                title: string;
-              },
-            );
-          }
-        });
-
-        existings.forEach((existingSourceBook) => {
-          const item = itemsById[existingSourceBook.source_book_id];
-
-          const shouldUpdateTitle =
-            item.title !== existingSourceBook.title &&
-            (item.titleAccuracy ?? ACCURACY.LOW) >=
-              (existingSourceBook.title_accuracy ?? ACCURACY.LOW);
-          const shouldUpdateDescription =
-            item.description !== existingSourceBook.description &&
-            (item.descriptionAccuracy ?? ACCURACY.LOW) >=
-              (existingSourceBook.description_accuracy ?? ACCURACY.LOW);
-
-          if (shouldUpdateTitle || shouldUpdateDescription) {
-            toUpdate.push(item);
-          }
-
-          if (!item.coverUrl) {
-            log.info(`${sourceId}/${item.id} no cover found`);
-          }
-
-          if (
-            (item.title || existingSourceBook) &&
-            item.coverUrl &&
-            existingSourceBook.cover_origin_url !== item.coverUrl
-          ) {
-            coverToFetches.push({
-              type: 'source_book_cover',
-              source_id: sourceId,
-              source_book_id: item.id,
-              img_url: item.coverUrl,
-            });
-          }
-        });
-
-        await SourceRepo.books.creates(sourceId, missings);
-        await SourceRepo.books.updates(sourceId, toUpdate);
-        log.info(
-          `${items.length} input items | ${missings.length} created | ${toUpdate.length} updated`,
-        );
-        //#endregion
-
-        //#region Book cover
-        coverToFetches.push(
-          ...missings
-            .filter((item) => item.coverUrl)
-            .map((item) => ({
-              type: 'source_book_cover' as const,
-              source_id: sourceId,
-              source_book_id: item.id,
-              img_url: item.coverUrl!,
-            })),
-        );
-        await fetchPictures(coverToFetches);
-        log.info(`${coverToFetches.length} covers fetched`);
-        //#endregion
-
-        await SourceRepo.books.syncBooks(
+        const { sourceBookIdToBookId } = await SourceRepo.books.syncBooks(
           sourceId,
-          uniq([
-            ...existings.filter((e) => !e.book_id).map((e) => e.source_book_id),
-            ...missings.map((m) => m.id),
-            ...toUpdate.map((m) => m.id),
-            ...coverToFetches.map((c) => c.source_book_id),
-          ]),
+          uniq(itemsWithSourceBookId.map((item) => item.source_book_id)),
         );
 
         //#region Upsert chapters
-        {
-          for (const sourceBook of items) {
-            if (!sourceBook.chapters?.length) {
+        for (const sourceBook of itemsWithSourceBookId) {
+          if (!sourceBook.chapters?.length) {
+            continue;
+          }
+
+          const { chapters } = sourceBook;
+
+          const existingChapters = await SourceRepo.chapters.get.listByNumbers({
+            sourceId,
+            sourceBookId: sourceBook.id,
+            chapterIds: sourceBook.chapters.map((i) => i.id),
+          });
+          const existingByNumber = keyBy(existingChapters, (c) => c.chapter_id);
+          const toCreate: typeof chapters = [];
+          const toUpdate: typeof chapters = [];
+
+          for (const chapter of chapters) {
+            const existing = existingByNumber[chapter.id];
+            if (!existing) {
+              toCreate.push(chapter);
               continue;
             }
 
-            const { chapters } = sourceBook;
-
-            const existingChapters =
-              await SourceRepo.chapters.get.listByNumbers({
-                sourceId,
-                sourceBookId: sourceBook.id,
-                chapterIds: sourceBook.chapters.map((i) => i.id),
-              });
-            const existingByNumber = keyBy(
-              existingChapters,
-              (c) => c.chapter_id,
-            );
-            const toCreate: typeof chapters = [];
-            const toUpdate: typeof chapters = [];
-
-            for (const chapter of chapters) {
-              const existing = existingByNumber[chapter.id];
-              if (!existing) {
-                toCreate.push(chapter);
-                continue;
-              }
-
-              const shouldUpdatePublishedAt =
-                existing.published_at !== chapter.publishedAt &&
-                (chapter.publishedAccuracy ?? ACCURACY.LOW) >=
-                  (existing.published_at_accuracy ?? ACCURACY.LOW);
-              if (shouldUpdatePublishedAt) {
-                toUpdate.push(chapter);
-              }
+            const shouldUpdatePublishedAt =
+              existing.published_at !== chapter.publishedAt &&
+              (chapter.publishedAccuracy ?? ACCURACY.LOW) >=
+                (existing.published_at_accuracy ?? ACCURACY.LOW);
+            if (shouldUpdatePublishedAt) {
+              toUpdate.push(chapter);
             }
+          }
 
-            await SourceRepo.chapters.creates({
-              sourceId,
-              sourceBookId: sourceBook.id,
-              chapters: toCreate,
+          await SourceRepo.chapters.creates({
+            sourceId,
+            sourceBookId: sourceBook.id,
+            chapters: toCreate,
+          });
+          await SourceRepo.chapters.updates({
+            sourceId,
+            sourceBookId: sourceBook.id,
+            chapters: toUpdate,
+          });
+
+          const sorted = sortBy(toCreate, (c) => c.rank);
+          const msg =
+            sorted.length === 0
+              ? `no new chapters`
+              : sorted.length > 1
+                ? `chapter ${sorted[0].id} created`
+                : `chapters ${sorted[0].id}..${sorted.at(-1)?.id} created`;
+
+          const bookId = sourceBookIdToBookId[sourceBook.source_book_id];
+          if (bookId) {
+            await UserStateRepo.sync.onBookChapterUpdated({
+              bookId,
             });
-            await SourceRepo.chapters.updates({
-              sourceId,
-              sourceBookId: sourceBook.id,
-              chapters: toUpdate,
-            });
-
-            const sorted = sortBy(toCreate, (c) => c.rank);
-            const msg =
-              sorted.length === 0
-                ? `no new chapters`
-                : sorted.length > 1
-                  ? `chapter ${sorted[0].id} created`
-                  : `chapters ${sorted[0].id}..${sorted.at(-1)?.id} created`;
-
-            if (toCreate.length) {
-              log.info(`${sourceId}/${sourceBook.id} ${msg}`);
-            }
+          } else {
+            log.warn(`bookId not found for sourceBookId ${sourceBook.id}`);
+          }
+          if (toCreate.length) {
+            log.info(`${sourceId}/${sourceBook.id} ${msg}`);
           }
         }
         //#endregion

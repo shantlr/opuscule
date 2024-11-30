@@ -23,7 +23,7 @@ const SubscribeForm = ({
 }) => {
   const form = useForm<{ selected: Record<string, boolean> }>({
     defaultValues: {
-      selected: {},
+      selected: Object.fromEntries(data.map((d) => [d.id, d.subscribed])),
     },
     onSubmit: ({ value }) => {
       onSubmit({

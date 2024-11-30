@@ -2,7 +2,9 @@ import type * as cheerio from 'cheerio';
 import { logger } from 'config/logger';
 import { optional } from 'zod';
 
-import { Op, OpOutput, Query } from './types';
+import { Op } from './lib/types';
+import { Query } from './lib/types';
+import { OpOutput } from './lib/types';
 
 const getElem = (
   $: cheerio.CheerioAPI,

@@ -18,5 +18,8 @@
     "eslint-plugin-react": "^7.37.2",
     "globals": "^15.11.0",
     "typescript-eslint": "^8.12.2"
+  },
+  "resolutions": {
+    "proute": "portal:/Users/plin/work/proute"
   }
 }

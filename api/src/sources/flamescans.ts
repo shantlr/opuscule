@@ -1,8 +1,8 @@
 import { ACCURACY } from 'config/constants';
 import { SourceRepo } from 'data/repo/source';
-import { fetchPictures } from 'lib/cron-jobs/core/fetch-pictures';
 import { parseFullFormattedDate } from 'lib/utils/parse-formatted-date';
 import { parseFormattedRelativeDate } from 'lib/utils/parse-relative-date';
+import { fetchPictures } from 'sources/lib/fetch-pictures';
 import { z } from 'zod';
 
 import { ISource } from './types';

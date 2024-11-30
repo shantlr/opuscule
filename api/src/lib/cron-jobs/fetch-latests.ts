@@ -3,7 +3,7 @@ import { SourceRepo } from 'data/repo/source';
 import { formatDuration } from 'lib/utils/format-duration';
 import { SourcesByID } from 'sources';
 
-import { createContext } from './core/create-context';
+import { createContext } from '../../sources/lib/create-context';
 
 const sourceStates: Record<
   string,

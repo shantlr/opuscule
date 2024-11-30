@@ -70,14 +70,17 @@ CREATE TABLE `source_books` (
 --> statement-breakpoint
 CREATE TABLE `user_book_states` (
 	`book_id` text NOT NULL,
-	`bookmarked` integer
+	`unread_count` integer,
+	`bookmarked` integer,
+	`updated_at` integer
 );
 --> statement-breakpoint
 CREATE TABLE `user_chapter_states` (
 	`chapter_id` text NOT NULL,
 	`read` integer,
 	`percentage` real,
-	`current_page` integer
+	`current_page` integer,
+	FOREIGN KEY (`chapter_id`) REFERENCES `chapters`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `unique_source_chapter` ON `chapters` (`source_id`,`source_book_id`,`chapter_id`);--> statement-breakpoint

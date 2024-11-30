@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "54d10fbb-feb3-469d-a4ff-01b7934bf847",
+  "id": "26ffa8d9-d076-478f-b428-4560a043c5ff",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "books": {
@@ -455,8 +455,22 @@
           "notNull": true,
           "autoincrement": false
         },
+        "unread_count": {
+          "name": "unread_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "bookmarked": {
           "name": "bookmarked",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -517,7 +531,21 @@
           "isUnique": true
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "user_chapter_states_chapter_id_chapters_id_fk": {
+          "name": "user_chapter_states_chapter_id_chapters_id_fk",
+          "tableFrom": "user_chapter_states",
+          "tableTo": "chapters",
+          "columnsFrom": [
+            "chapter_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     }

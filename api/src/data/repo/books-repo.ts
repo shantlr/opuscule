@@ -1,3 +1,4 @@
+import { Logger } from 'config/logger';
 import { db } from 'data/db';
 import { Book, UserBookState, Chapter, UserChapterState } from 'data/schema';
 import {
@@ -10,6 +11,13 @@ import {
   notInArray,
   isNull,
 } from 'drizzle-orm';
+import { fetchBook } from 'lib/cron-jobs/fetch-book';
+import { keyBy } from 'lodash';
+import { FetchPictureJob, fetchPictures } from 'sources/lib/fetch-pictures';
+
+import { SourceRepo } from './source';
+import { UserStateRepo } from './use-state';
+import { shouldUpdateTextWithAccuracy } from './utils';
 
 export const BookRepo = {
   get: {
@@ -45,6 +53,7 @@ export const BookRepo = {
     latestUpdateds: async (query?: {
       bookIds?: string[];
       bookmarked?: boolean;
+      hasUnread?: boolean;
     }) => {
       const cond: SQL[] = [];
 
@@ -65,6 +74,32 @@ export const BookRepo = {
             bookmarked.map((b) => b.book_id),
           ),
         );
+      }
+
+      if (query?.hasUnread) {
+        return await db.query.Book.findMany({
+          where: cond.length ? and(...cond) : undefined,
+          orderBy: [desc(Book.last_chapter_updated_at)],
+          with: {
+            sourceBooks: {
+              with: {
+                chapters: {
+                  columns: {
+                    chapter_id: true,
+                    id: true,
+                    chapter_rank: true,
+                    published_at: true,
+                  },
+                  orderBy: [desc(Chapter.chapter_rank)],
+                  with: {
+                    userState: true,
+                  },
+                  limit: 3,
+                },
+              },
+            },
+          },
+        });
       }
 
       return await db.query.Book.findMany({
@@ -206,6 +241,9 @@ export const BookRepo = {
             bookmarked: true,
           },
         });
+
+      await UserStateRepo.sync.booksUnreadCount({ bookIds: [bookId] });
+      await BookRepo.refetch.book(bookId);
       return {};
     },
     delete: async (bookId: string) => {
@@ -248,6 +286,102 @@ export const BookRepo = {
         });
       },
     },
+  },
+
+  refetch: {
+    book: async (bookId: string) => {
+      await fetchBook(bookId);
+    },
+  },
+
+  upsertFromSource: async <
+    ItemType extends {
+      id: string;
+      title?: string;
+      titleAccuracy?: number;
+      coverUrl?: string | null;
+      description?: string;
+      descriptionAccuracy?: number;
+    },
+  >(
+    sourceId: string,
+    items: ItemType[],
+    logger: Logger,
+  ): Promise<
+    (Omit<ItemType, 'source_book_id'> & { source_book_id: string })[]
+  > => {
+    const existings = await SourceRepo.books.get.listById(
+      sourceId,
+      items.map((i) => i.id),
+    );
+
+    const existingById = keyBy(existings, (b) => b.source_book_id);
+
+    const { missings, matched, coverToFetches, toUpdate } = items.reduce(
+      (acc, item) => {
+        const existing = existingById[item.id];
+        if (!existing) {
+          if (item.title) {
+            acc.missings.push(item as ItemType & { title: string });
+          }
+        } else {
+          acc.matched.push({
+            ...item,
+            source_book_id: existing.source_book_id,
+          });
+
+          if (
+            shouldUpdateTextWithAccuracy(
+              [existing.title, existing.title_accuracy],
+              [item.title, item.titleAccuracy],
+            ) ||
+            shouldUpdateTextWithAccuracy(
+              [existing.description, existing.description_accuracy],
+              [item.description, item.descriptionAccuracy],
+            )
+          ) {
+            acc.toUpdate.push(item);
+          }
+        }
+
+        if (
+          (item.title || existing) &&
+          item.coverUrl &&
+          existing?.cover_origin_url !== item.coverUrl
+        ) {
+          acc.coverToFetches.push({
+            type: 'source_book_cover',
+            source_id: sourceId,
+            source_book_id: item.id,
+            img_url: item.coverUrl,
+          });
+        }
+
+        return acc;
+      },
+      {
+        missings: [] as (ItemType & { title: string })[],
+        matched: [] as (ItemType & { source_book_id: string })[],
+        toUpdate: [] as ItemType[],
+        coverToFetches: [] as FetchPictureJob[],
+      },
+    );
+
+    await SourceRepo.books.creates(sourceId, missings);
+    await SourceRepo.books.updates(sourceId, toUpdate);
+
+    await fetchPictures(coverToFetches, { logger });
+
+    logger.info(
+      `${items.length} input items | ${missings.length} created | ${toUpdate.length} updated`,
+    );
+    return [
+      ...missings.map((b) => ({
+        ...b,
+        source_book_id: b.id,
+      })),
+      ...matched,
+    ];
   },
 
   update: {

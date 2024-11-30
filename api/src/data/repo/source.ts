@@ -49,8 +49,24 @@ export const SourceRepo = {
   },
 
   updates: {
-    subscribe: async (sourceId: string, logger = defaultLogger) => {
-      await db.transaction(async (t) => {
+    subscribeMany: async (sourceIds: string[]) => {
+      await db.transaction(async (tx) => {
+        for (const sourceId of sourceIds) {
+          await SourceRepo.updates.subscribe(sourceId, { tx });
+        }
+      });
+    },
+    subscribe: async (
+      sourceId: string,
+      {
+        logger = defaultLogger,
+        tx = db,
+      }: {
+        logger?: Logger;
+        tx?: typeof db;
+      } = {},
+    ) => {
+      await tx.transaction(async (t) => {
         if (!Sources.find((s) => s.id === sourceId)) {
           throw new Error(`UNKNOWN_SOURCE`);
         }
@@ -309,26 +325,29 @@ export const SourceRepo = {
       }[],
     ) => {
       if (!items.length) {
-        return;
+        return [];
       }
 
-      await db.insert(SourceBook).values(
-        items.map((item) => ({
-          source_id: sourceId,
-          source_book_id: item.id,
-          source_book_key: item.key,
-          title: item.title,
-          title_accuracy: item.titleAccuracy ?? ACCURACY.LOW,
-          description: item.description,
-          description_accuracy: item.description
-            ? (item.descriptionAccuracy ?? ACCURACY.LOW)
-            : null,
-        })),
-      );
+      return await db
+        .insert(SourceBook)
+        .values(
+          items.map((item) => ({
+            source_id: sourceId,
+            source_book_id: item.id,
+            source_book_key: item.key,
+            title: item.title,
+            title_accuracy: item.titleAccuracy ?? ACCURACY.LOW,
+            description: item.description,
+            description_accuracy: item.description
+              ? (item.descriptionAccuracy ?? ACCURACY.LOW)
+              : null,
+          })),
+        )
+        .returning();
     },
 
     createAssociatedBook: async (sb: (typeof SourceBook)['$inferSelect']) => {
-      await db.transaction(async (t) => {
+      return await db.transaction(async (t) => {
         const [book] = await t
           .insert(Book)
           .values({
@@ -349,30 +368,39 @@ export const SourceRepo = {
               eq(SourceBook.source_book_id, sb.source_book_id),
             ),
           );
+        return { book };
       });
     },
+    /**
+     * Ensure Source book has associated book
+     */
     syncBooks: async (
       sourceId: string,
-      ids: string[],
+      sourceBookIds: string[],
       logger = defaultLogger,
-    ) => {
-      if (!ids.length) {
-        return;
+    ): Promise<{ sourceBookIdToBookId: Record<string, string> }> => {
+      if (!sourceBookIds.length) {
+        return { sourceBookIdToBookId: {} };
       }
       const log = logger.scope('sync-books');
 
-      log.info(`syncing ${sourceId}/${ids.join(',')}`);
+      log.info(`syncing ${sourceId}/${sourceBookIds.join(',')}`);
 
       const sourceBooks = await db.query.SourceBook.findMany({
-        where: inArray(SourceBook.source_book_id, ids),
+        where: inArray(SourceBook.source_book_id, sourceBookIds),
       });
       const [withoutBooks, withBooks] = partition(
         sourceBooks,
         (sb) => !sb.book_id,
       );
 
+      const sourceBookIdToBookId = Object.fromEntries(
+        withBooks.map((v) => [v.source_book_id, v.book_id!]),
+      );
+
       for (const sb of withoutBooks) {
-        await SourceRepo.books.createAssociatedBook(sb);
+        const created = await SourceRepo.books.createAssociatedBook(sb);
+        sourceBookIdToBookId[sb.source_book_id] = created.book.id;
         log.info(
           `[source-book] associated book created: ${sb.source_id}/${sb.source_book_id}`,
         );
@@ -380,6 +408,9 @@ export const SourceRepo = {
       for (const b of withBooks) {
         await BookRepo.sync(b.book_id!);
       }
+      return {
+        sourceBookIdToBookId,
+      };
     },
   },
   chapters: {

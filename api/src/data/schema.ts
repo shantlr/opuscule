@@ -121,8 +121,12 @@ export const UserBookState = sqliteTable(
   'user_book_states',
   {
     book_id: text('book_id').notNull(),
+    unread_count: integer('unread_count'),
     bookmarked: integer('bookmarked', { mode: 'boolean' }).$defaultFn(
       () => false,
+    ),
+    updated_at: integer('updated_at', { mode: 'timestamp_ms' }).$onUpdateFn(
+      () => new Date(),
     ),
   },
   (t) => ({

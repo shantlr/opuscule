@@ -1,11 +1,11 @@
 import { ACCURACY } from 'config/constants';
 import { logger } from 'config/logger';
 import { SourceRepo } from 'data/repo/source';
-import { fetchPictures } from 'lib/cron-jobs/core/fetch-pictures';
 import { joinUrl } from 'lib/utils/join-url';
 import { parseFullFormattedDate } from 'lib/utils/parse-formatted-date';
 import { parseFormattedRelativeDate } from 'lib/utils/parse-relative-date';
 import { uniq, uniqBy } from 'lodash';
+import { fetchPictures } from 'sources/lib/fetch-pictures';
 import { z } from 'zod';
 
 import { ISource } from './types';
