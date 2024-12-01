@@ -19,8 +19,6 @@ export default function Settings() {
   const { mutate: subscribe } = useSubscribeSource({});
   const { mutate: unsubscribe } = useUnsubscribeSource({});
 
-  console.log(data);
-
   return (
     <SafeAreaView className="p-4">
       <Text className="text-lg">Settings</Text>

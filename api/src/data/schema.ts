@@ -141,6 +141,7 @@ export const UserChapterState = sqliteTable(
       .notNull()
       .references(() => Chapter.id),
     read: integer('read', { mode: 'boolean' }).$defaultFn(() => false),
+    read_at: integer('read_at', { mode: 'timestamp_ms' }),
     percentage: real('percentage').$defaultFn(() => 0),
     current_page: integer('current_page').$defaultFn(() => 0),
   },

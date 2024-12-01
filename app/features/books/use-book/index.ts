@@ -66,25 +66,55 @@ export const useSaveReadProgress = createUseMutation(
     },
   ) => API.books.chapters.saveReadProgress(omit(params, 'bookId')),
   {
-    onSuccess({ queryClient, variables }) {
-      const chapterQueryKey = QUERY_KEYS.books.id.chapters.id({
-        bookId: variables.bookId,
-        chapterId: variables.chapterId,
-      });
-      const queryData = queryClient.getQueryData(chapterQueryKey) as Awaited<
-        ReturnType<(typeof API)['books']['chapters']['get']>
-      >;
+    onSuccess({ queryClient, variables, data }) {
+      if (!data.chapter?.user_state) {
+        return;
+      }
 
-      if (queryData) {
-        queryClient.setQueryData(chapterQueryKey, {
-          ...queryData,
-          user_state: {
-            ...queryData.chapter.user_state,
-            percentage: variables.percentage,
-            page: variables.page,
-            read: variables.percentage > 0.98,
-          },
+      // update chapter
+      {
+        const chapterQueryKey = QUERY_KEYS.books.id.chapters.id({
+          bookId: variables.bookId,
+          chapterId: variables.chapterId,
         });
+        const queryData = queryClient.getQueryData(chapterQueryKey) as Awaited<
+          ReturnType<(typeof API)['books']['chapters']['get']>
+        >;
+
+        if (queryData) {
+          queryClient.setQueryData(chapterQueryKey, {
+            ...queryData,
+            user_state: data.chapter.user_state,
+          });
+        }
+      }
+
+      // update book
+      {
+        const bookKey = QUERY_KEYS.books.id.details({
+          bookId: variables.bookId,
+        });
+        const bookDetailsData = queryClient.getQueryData(bookKey) as Awaited<
+          ReturnType<(typeof API)['books']['get']>
+        >;
+
+        if (bookDetailsData?.book) {
+          queryClient.setQueryData(bookKey, {
+            ...bookDetailsData,
+            book: {
+              ...bookDetailsData.book,
+              chapters: bookDetailsData.book.chapters.map((chapter) => {
+                if (chapter.id === variables.chapterId) {
+                  return {
+                    ...chapter,
+                    user_state: data.chapter.user_state,
+                  };
+                }
+                return chapter;
+              }),
+            },
+          });
+        }
       }
     },
   },

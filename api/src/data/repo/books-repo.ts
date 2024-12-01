@@ -164,12 +164,13 @@ export const BookRepo = {
         page: number;
       }) => {
         const read = percentage >= 0.99;
-        await db
+        const [updated] = await db
           .insert(UserChapterState)
           .values({
             chapter_id: chapterId,
             percentage,
             current_page: page,
+            read,
           })
           .onConflictDoUpdate({
             target: UserChapterState.chapter_id,
@@ -178,9 +179,16 @@ export const BookRepo = {
               current_page: page,
               read,
             },
-          });
+          })
+          .returning();
 
         if (read) {
+          if (!updated?.read_at) {
+            await db
+              .update(UserChapterState)
+              .set({ read_at: new Date() })
+              .where(eq(UserChapterState.chapter_id, chapterId));
+          }
           await UserStateRepo.sync.onChapterReadDone({
             chapterId,
           });

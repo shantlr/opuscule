@@ -71,7 +71,9 @@ export const API = {
           page: number;
         }) => `/chapters/${chapterId}/read-progress`,
         body: (arg) => omit(arg, ['chapterId']),
-        result: json<Record<never, never>>,
+        result: json<{
+          chapter: ApiChapter;
+        }>,
       }),
       source: {
         raw: get({

@@ -17,7 +17,7 @@ export type ApiBookSummary = {
 };
 
 export type ApiBookDetail = ApiBookSummary & {
-  source_books: ApiSourceBook[];
+  chapters: ApiChapterSummary[];
 };
 export type ApiSourceBook = {
   source_id: string;
@@ -41,6 +41,7 @@ export type ApiChapterSummary = {
     percentage: number;
     page: number;
     read: boolean;
+    read_at: Date | null;
   } | null;
 };
 

@@ -1,8 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
 import { Link } from 'expo-router';
-import { flatMap, groupBy, map, sortBy } from 'lodash';
-import { useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   Button,
   ScrollView,
@@ -35,21 +34,9 @@ import {
 } from '@/features/books/use-book';
 
 const ChapterList = ({ book }: { book: ApiBookDetail | undefined }) => {
-  const chapters = useMemo(() => {
-    const flattened = flatMap(book?.source_books, (sb) => sb.chapters);
-    const grouped = groupBy(flattened, (c) => c.rank);
-    return sortBy(
-      map(grouped, (g) => ({
-        ...g[0],
-        sources: g.map((c) => c.source_id),
-      })),
-      (c) => -c.rank,
-    );
-  }, [book]);
-
   return (
     <View role="list" className="gap-1">
-      {chapters?.map((chapter) => (
+      {book?.chapters?.map((chapter) => (
         <View key={chapter.id} role="listitem">
           <Link
             href={{
@@ -76,6 +63,11 @@ const ChapterList = ({ book }: { book: ApiBookDetail | undefined }) => {
                     : null}
                 </Text>
               </Text>
+              {!!chapter.user_state?.read_at && (
+                <Text className="text-light">
+                  {dayjs(chapter.user_state.read_at).fromNow()}
+                </Text>
+              )}
               {!!chapter.user_state && !chapter.user_state.read && (
                 <View className="px-2 bg-accent rounded">
                   <Text className="text-sm text-on-accent">

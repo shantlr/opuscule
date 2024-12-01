@@ -3,7 +3,7 @@ import { BookRepo } from 'data/repo/books-repo';
 import { endpointConf, EndpointHandler } from 'proute';
 import { object, number } from 'valibot';
 
-import { ROUTES } from '../base-conf';
+import { RESOURCES, ROUTES } from '../base-conf';
 
 const conf = endpointConf({
   route: ROUTES.put['/chapters/:id/read-progress'],
@@ -12,7 +12,10 @@ const conf = endpointConf({
     page: number(),
   }),
   responses: {
-    200: object({}),
+    200: object({
+      chapter: RESOURCES.chapter,
+    }),
+    404: null,
     500: null,
   },
 });
@@ -27,9 +30,20 @@ const handler: EndpointHandler<typeof conf> = async ({
       percentage,
       page,
     });
+    const chapter = await BookRepo.chapters.get.byIdWithReadProgress(id);
+
+    if (!chapter) {
+      return {
+        status: 404,
+        data: null,
+      };
+    }
+
     return {
       status: 200,
-      data: {},
+      data: {
+        chapter: chapter,
+      },
     };
   } catch (err) {
     logger.error(err);

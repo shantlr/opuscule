@@ -1,6 +1,6 @@
 import { BookRepo } from 'data/repo/books-repo';
 import { formatPublicS3Url } from 'lib/s3';
-import { keyBy } from 'lodash';
+import { flatMap, groupBy, keyBy, map, sortBy } from 'lodash';
 import { combineReturnTypes, createResource, returnType } from 'proute';
 import {
   array,
@@ -16,6 +16,7 @@ const chapterUserState = object({
   chapter_id: string(),
   percentage: number(),
   read: boolean(),
+  read_at: nullable(date()),
   current_page: number(),
 });
 
@@ -62,6 +63,7 @@ export const chapter = createResource({
       percentage: input.userState?.percentage ?? 0,
       current_page: input.userState?.current_page ?? 0,
       read: input.userState?.read ?? false,
+      read_at: input.userState?.read_at ?? null,
     },
   }),
 });
@@ -78,54 +80,51 @@ export const bookDetail = createResource({
     cover_url: nullable(string()),
     created_at: nullable(date()),
 
-    source_books: array(
+    chapters: array(
       object({
-        source_id: string(),
-        source_book_id: string(),
-        chapters: array(
-          object({
-            id: string(),
-            chapter_id: string(),
-            rank: number(),
-            published_at: nullable(date()),
-            user_state: chapterUserState,
-          }),
-        ),
+        id: string(),
+        chapter_id: string(),
+        rank: number(),
+        published_at: nullable(date()),
+        user_state: chapterUserState,
       }),
     ),
-
     bookmarked: boolean(),
   }),
-  map: ({ book, userState }) => ({
-    id: book.id,
-    title: book.title,
-    description: book.description,
-    last_chapter_updated_at: book.last_chapter_updated_at,
-    cover_url:
-      book.cover_s3_key && book.cover_s3_bucket
-        ? formatPublicS3Url(book.cover_s3_bucket, book.cover_s3_key)
-        : null,
-    created_at: book.created_at,
+  map: ({ book, userState }) => {
+    const chapters = flatMap(book.sourceBooks, (sb) => sb.chapters);
+    const grouped = groupBy(chapters, (chapter) => chapter.chapter_rank);
 
-    source_books: book.sourceBooks.map((sb) => ({
-      source_id: sb.source_id,
-      source_book_id: sb.source_book_id,
-      chapters: sb.chapters.map((chapter) => ({
-        id: chapter.id,
-        chapter_id: chapter.chapter_id,
-        rank: chapter.chapter_rank,
-        published_at: chapter.published_at,
-        user_state: {
-          chapter_id: chapter.id,
-          percentage: chapter.userState?.percentage ?? 0,
-          read: chapter.userState?.read ?? false,
-          current_page: chapter.userState?.current_page ?? 0,
-        },
-      })),
-    })),
+    return {
+      id: book.id,
+      title: book.title,
+      description: book.description,
+      last_chapter_updated_at: book.last_chapter_updated_at,
+      cover_url:
+        book.cover_s3_key && book.cover_s3_bucket
+          ? formatPublicS3Url(book.cover_s3_bucket, book.cover_s3_key)
+          : null,
+      created_at: book.created_at,
 
-    bookmarked: userState?.bookmarked ?? false,
-  }),
+      chapters: sortBy(
+        map(grouped, (group) => ({
+          id: group[0].id,
+          chapter_id: group[0].chapter_id,
+          rank: group[0].chapter_rank,
+          published_at: group[0].published_at,
+          user_state: {
+            chapter_id: group[0].id,
+            percentage: group[0].userState?.percentage ?? 0,
+            read: group[0].userState?.read ?? false,
+            current_page: group[0].userState?.current_page ?? 0,
+            read_at: group[0].userState?.read_at ?? null,
+          },
+        })),
+        (c) => -c.rank,
+      ),
+      bookmarked: userState?.bookmarked ?? false,
+    };
+  },
 });
 
 const bookSummaryOutput = object({
@@ -186,6 +185,7 @@ export const bookSummary = createResource({
                 chapter_id: chapter.id,
                 percentage: chapter.userState.percentage ?? 0,
                 read: chapter.userState.read ?? false,
+                read_at: chapter.userState.read_at ?? null,
                 current_page: chapter.userState.current_page ?? 0,
               }
             : null;
@@ -243,6 +243,7 @@ export const bookSummaries = createResource({
                   chapter_id: chapter.id,
                   percentage: chapter.userState.percentage ?? 0,
                   read: chapter.userState.read ?? false,
+                  read_at: chapter.userState.read_at ?? null,
                   current_page: chapter.userState.current_page ?? 0,
                 }
               : null;
