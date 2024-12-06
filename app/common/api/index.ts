@@ -83,4 +83,16 @@ export const API = {
       },
     },
   },
+  chapters: {
+    update: {
+      readProgressMany: put({
+        path: '/chapters/read-progress',
+        body: (body: {
+          chapters: { id: string; read: boolean }[];
+          bookId?: string;
+        }) => omit(body, ['bookId']),
+        result: json<{}>,
+      }),
+    },
+  },
 };

@@ -256,7 +256,7 @@ export const sourceAsuraScan: ISource<'asurascan'> = {
 
         const matches = uniq(
           page.html.match(
-            /https:\/\/gg.asuracomic.net\/storage\/media\/\d+\/conversions\/\d{2}-optimized.webp/g,
+            /https:\/\/gg.asuracomic.net\/storage\/media\/\d+\/conversions\/[0-9a-zA-Z]+-optimized.webp/g,
           ),
         );
         const pages = z

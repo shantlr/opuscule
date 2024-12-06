@@ -23,6 +23,12 @@ module.exports = {
         grey: '#8D99AE',
         light: '#8D99AE',
       },
+
+      spacing: {
+        'input-default': '48px',
+        'input-sm': '32px',
+        'input-xs': '24px',
+      },
     },
   },
   plugins: [],

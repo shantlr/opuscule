@@ -79,6 +79,10 @@ export const ROUTES = {
     },
   },
   put: {
+    '/chapters/read-progress': {
+      expressPath: '/chapters/read-progress',
+      params: object({}),
+    },
     '/chapters/:id/read-progress': {
       expressPath: '/chapters/:id/read-progress',
       params: object({

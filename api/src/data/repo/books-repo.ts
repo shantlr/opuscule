@@ -11,6 +11,7 @@ import {
   notInArray,
   isNull,
   gt,
+  sql,
 } from 'drizzle-orm';
 import { fetchBook } from 'lib/cron-jobs/fetch-book';
 import { keyBy } from 'lodash';
@@ -154,6 +155,29 @@ export const BookRepo = {
       },
     },
     updates: {
+      readProgressMany: async (
+        chapters: {
+          id: string;
+          read: boolean;
+        }[],
+      ) => {
+        await db
+          .insert(UserChapterState)
+          .values(
+            chapters.map((c) => ({
+              chapter_id: c.id,
+              read: c.read,
+              read_at: new Date(),
+            })),
+          )
+          .onConflictDoUpdate({
+            target: UserChapterState.chapter_id,
+            set: {
+              read: sql`excluded.read`,
+              read_at: sql`COALESCE(${UserChapterState.read_at}, excluded.read_at)`,
+            },
+          });
+      },
       readProgress: async ({
         chapterId,
         percentage,
