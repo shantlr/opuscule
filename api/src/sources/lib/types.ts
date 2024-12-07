@@ -1,5 +1,4 @@
 import { Logger } from 'config/logger';
-import { OptionsInit, Request as GotRequest } from 'got';
 
 export type Op = OpText | OpMap | OpAttr | OpExist | OpObject;
 export type Query =
@@ -61,7 +60,6 @@ export type FetchPage = {
 };
 export type FetcherSession = {
   go: (url: string) => Promise<FetchPage>;
-  stream: (url: string, options?: OptionsInit) => GotRequest;
 };
 export type SourceContext = {
   logger: Logger;

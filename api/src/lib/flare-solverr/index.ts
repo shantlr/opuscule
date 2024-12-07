@@ -1,4 +1,4 @@
-import got from 'got';
+import { config } from 'config';
 
 export type FlareSolverrCookie = {
   domain?: string;
@@ -12,7 +12,19 @@ export type FlareSolverrCookie = {
 };
 
 export const startSession = async ({ url }: { url: string }) => {
-  const res = await got.post<{
+  const res = await fetch(config.get('flaresolverr.url'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      cmd: 'request.get',
+      url,
+      maxTimeout: 60 * 1000,
+    }),
+  });
+
+  return (await res.json()) as {
     status: 'ok';
     solution: {
       status: number;
@@ -25,13 +37,5 @@ export const startSession = async ({ url }: { url: string }) => {
       endTimestamp: number;
       version: string;
     };
-  }>('http://localhost:8191/v1', {
-    json: {
-      cmd: 'request.get',
-      url,
-      maxTimeout: 60 * 1000,
-    },
-    responseType: 'json',
-  });
-  return res.body;
+  };
 };

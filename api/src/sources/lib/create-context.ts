@@ -6,14 +6,11 @@ import { FetchSessionRepo } from 'data/repo/fetch-sessions';
 import { HtmlCacheRepo } from 'data/repo/html-cache';
 import { SourceRepo } from 'data/repo/source';
 import { UserStateRepo } from 'data/repo/use-state';
-import got, { HTTPError, OptionsInit, OptionsOfTextResponseBody } from 'got';
 import { startSession } from 'lib/flare-solverr';
-import { formatCookie } from 'lib/utils/format-cookies';
 import { joinUrl } from 'lib/utils/join-url';
 import { keyBy, sortBy, uniq } from 'lodash';
 import { Sources } from 'sources';
 import { execOperations } from 'sources/exec-op';
-import { CookieJar } from 'tough-cookie';
 
 import { SourceContext } from './types';
 import { FetcherSession } from './types';
@@ -38,18 +35,9 @@ const createFetcher = async (
   logger = defaultLogger,
 ) => {
   const log = logger.scope('fetcher-session');
-  const cookieJar = new CookieJar();
-
-  for (const cookie of session.cookies) {
-    await cookieJar.setCookie(formatCookie(cookie), cookie.url);
-  }
-
-  const instance = got.extend({
-    // cookieJar,
-  });
 
   return {
-    async fetch(url: string, options?: OptionsOfTextResponseBody) {
+    async fetch(url: string, options?: RequestInit) {
       const cacheKey = `${session.key}:${url}`;
       const cacheData = await HtmlCacheRepo.get.byUrl(cacheKey);
       if (cacheData?.data) {
@@ -57,27 +45,19 @@ const createFetcher = async (
         return cacheData.data;
       }
 
-      const res = await instance(url, {
-        ...options,
+      const res = await fetch(url, {
         headers: {
           ...options?.headers,
           'User-Agent': session.user_agent,
         },
       });
-      log.info(`[fetcher-session] fetched page '${url}': ${res.statusCode}`);
+      log.info(`[fetcher-session] fetched page '${url}': ${res.status}`);
 
-      await HtmlCacheRepo.create(cacheKey, res.body, res.statusCode);
+      const result = await res.text();
 
-      return res.body;
-    },
-    stream(url: string, options?: OptionsInit) {
-      return instance.stream(url, {
-        headers: {
-          // 'User-Agent': session.user_agent,
-          'user-agent': undefined,
-          ...options?.headers,
-        },
-      });
+      await HtmlCacheRepo.create(cacheKey, result, res.status);
+
+      return result;
     },
   };
 };
@@ -103,51 +83,35 @@ export const createFetcherSession = async (
     go: async (path: string) => {
       const url = options?.baseUrl ? joinUrl(options.baseUrl, path) : path;
 
-      try {
-        if (fetcher) {
-          const res = await fetcher.fetch(url);
-          return createPage({
-            data: res,
-          });
-        }
-
-        // start new session
-        log.info(`[fetcher-session] starting new session for '${url}'`);
-        const flareRes = await startSession({ url });
-        currentFetchSession = await FetchSessionRepo.create({
-          key: sessionId,
-          cookies: flareRes.solution.cookies.map((c) => ({
-            ...c,
-            url,
-          })),
-          user_agent: flareRes.solution.userAgent,
-        });
-        const cacheKey = `${currentFetchSession.key}:${url}`;
-        await HtmlCacheRepo.create(
-          cacheKey,
-          flareRes.solution.response,
-          flareRes.solution.status,
-        );
-
-        fetcher = await createFetcher(currentFetchSession);
+      if (fetcher) {
+        const res = await fetcher.fetch(url);
         return createPage({
-          data: flareRes.solution.response,
+          data: res,
         });
-      } catch (err) {
-        if (err instanceof HTTPError) {
-          if (err.response.statusCode === 403) {
-            log.info(
-              `[fetcher-session] got 403 while fetching ${url}, deleting session`,
-            );
-            await FetchSessionRepo.delete(sessionId);
-          }
-        }
-        throw err;
       }
-    },
-    stream: (path: string, streamOptions) => {
-      const url = options?.baseUrl ? joinUrl(options.baseUrl, path) : path;
-      return fetcher!.stream(url, streamOptions);
+
+      // start new session
+      log.info(`[fetcher-session] starting new session for '${url}'`);
+      const flareRes = await startSession({ url });
+      currentFetchSession = await FetchSessionRepo.create({
+        key: sessionId,
+        cookies: flareRes.solution.cookies.map((c) => ({
+          ...c,
+          url,
+        })),
+        user_agent: flareRes.solution.userAgent,
+      });
+      const cacheKey = `${currentFetchSession.key}:${url}`;
+      await HtmlCacheRepo.create(
+        cacheKey,
+        flareRes.solution.response,
+        flareRes.solution.status,
+      );
+
+      fetcher = await createFetcher(currentFetchSession);
+      return createPage({
+        data: flareRes.solution.response,
+      });
     },
   };
   return session;

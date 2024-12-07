@@ -88,14 +88,14 @@ export const Chapter = sqliteTable(
 
     source_id: text('source_id').notNull(),
     source_book_id: text('source_book_id').notNull(),
-    pages: text('pages', { mode: 'json' }),
-    // .$type<
-    //   {
-    //     url: string;
-    //     width: number;
-    //     height: number;
-    //   }[]
-    // >,
+    pages: text('pages', { mode: 'json' }).$type<
+      {
+        s3_key: string;
+        s3_bucket: string;
+        width: number;
+        height: number;
+      }[]
+    >(),
 
     published_at: integer('published_at', { mode: 'timestamp_ms' }),
     published_at_accuracy: integer('published_at_accuracy'),

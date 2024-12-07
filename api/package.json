@@ -43,7 +43,6 @@
     "dayjs": "^1.11.13",
     "drizzle-orm": "^0.33.0",
     "express": "^4.19.2",
-    "got": "^14.4.2",
     "lodash": "^4.17.21",
     "minio": "^8.0.1",
     "nanoid": "^5.0.7",
@@ -51,7 +50,7 @@
     "proute": "^0.0.2",
     "sharp": "^0.33.5",
     "tough-cookie": "^5.0.0",
-    "valibot": "1.0.0-beta.3",
+    "valibot": "^1.0.0-beta.9",
     "zod": "^3.23.8"
   }
 }

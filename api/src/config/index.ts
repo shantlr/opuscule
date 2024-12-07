@@ -58,6 +58,13 @@ export const config = convict({
     },
   },
 
+  flaresolverr: {
+    url: {
+      env: 'FLARESOLVERR_URL',
+      default: 'http://localhost:8191',
+    },
+  },
+
   api: {
     cors: {
       origin: {

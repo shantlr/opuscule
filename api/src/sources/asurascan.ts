@@ -269,34 +269,6 @@ export const sourceAsuraScan: ISource<'asurascan'> = {
             })),
           )
           .parse(matches);
-        // console.log(pages);
-        // const res = page.map({
-        //   type: 'object',
-        //   fields: {
-        //     pages: {
-        //       type: 'map',
-        //       query: 'div.py-8 > div.w-full.mx-auto.center',
-        //       item: {
-        //         url: {
-        //           type: 'attr',
-        //           query: `img.object-cover.mx-auto`,
-        //           name: 'src',
-        //         },
-        //       },
-        //     },
-        //   },
-        // });
-
-        // const results = z
-        //   .object({
-        //     pages: z
-        //       .object({
-        //         url: z.string(),
-        //       })
-        //       .array()
-        //       .min(1),
-        //   })
-        //   .parse(res);
 
         await fetchPictures([
           {
