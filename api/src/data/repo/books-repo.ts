@@ -79,15 +79,23 @@ export const BookRepo = {
       }
 
       if (query?.hasUnread) {
-        cond.push(gt(UserBookState.unread_count, 0));
-        return await db.query.Book.findMany({
-          where: cond.length ? and(...cond) : undefined,
-          orderBy: [desc(Book.last_chapter_updated_at)],
-          with: {
-            userState: true,
-            sourceBooks: true,
+        const res = await db.query.UserBookState.findMany({
+          columns: {
+            book_id: true,
           },
+          where: and(
+            gt(UserBookState.unread_count, 0),
+            typeof query.bookmarked === 'boolean'
+              ? eq(UserBookState.bookmarked, query.bookmarked)
+              : undefined,
+          ),
         });
+        cond.push(
+          inArray(
+            Book.id,
+            res.map((b) => b.book_id),
+          ),
+        );
       }
 
       return await db.query.Book.findMany({
