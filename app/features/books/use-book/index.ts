@@ -19,7 +19,7 @@ export const useBookmarkedUnreadBooks = createUseQuery(API.books.list, {
   queryKey: QUERY_KEYS.books.bookmarked.unread({}),
   params: {
     bookmarked: true,
-    unread: true,
+    has_unread: true,
   },
 });
 

@@ -6261,7 +6261,7 @@ __metadata:
     nanoid: "npm:^5.0.7"
     nodemon: "npm:^3.1.7"
     pino: "npm:^9.5.0"
-    pino-grove: "npm:^0.0.4"
+    pino-grove: "npm:^0.0.5"
     prettier: "npm:^3.3.3"
     proute: "npm:^0.0.2"
     sharp: "npm:^0.33.5"
@@ -14222,15 +14222,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pino-grove@npm:^0.0.4":
-  version: 0.0.4
-  resolution: "pino-grove@npm:0.0.4"
+"pino-grove@npm:^0.0.5":
+  version: 0.0.5
+  resolution: "pino-grove@npm:0.0.5"
   dependencies:
     picocolors: "npm:^1.1.1"
     split2: "npm:^4.2.0"
   bin:
     pino-grove: bin/cli.mjs
-  checksum: 10c0/1226cc947f04bd68ecbace6d037e1e6c3633ef456725a17a399ac01c0ab3ab235be33f42769096b880693b2438042f88a412284f7f2838228be6470dd8ca0015
+  checksum: 10c0/bcf3ea598d292333a34247e0b4343b4c34d12262b16fe8acf6dfbba2e51a657452bb208cff1e0a3bf5bd5aebdd2d751712e8ac57c07cd1b5ac4a64e8fb52bb64
   languageName: node
   linkType: hard
 

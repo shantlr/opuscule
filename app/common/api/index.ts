@@ -29,8 +29,8 @@ export const API = {
   books: {
     list: get({
       path: '/books',
-      query: (params: { bookmarked?: boolean; unread?: boolean }) =>
-        pick(params, ['bookmarked', 'unread']),
+      query: (params: { bookmarked?: boolean; has_unrad?: boolean }) =>
+        pick(params, ['bookmarked', 'has_unread']),
       result: json<{ books: ApiBookSummary[] }>,
     }),
 
