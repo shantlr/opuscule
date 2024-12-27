@@ -4,97 +4,127 @@ import { isRouteEndpointModule, createRoute, createOpenapiJson } from 'proute';
 import { RESOURCES } from './base-conf';
 import { Router } from 'express';
 import $0 from './middlewares';
-import $1 from './books/get';
-import $2 from './books/$id.get';
-import $3 from './books/$id.bookmark.delete';
-import $4 from './books/$id.bookmark.post';
-import $5 from './books/$id.chapter.$chapterId.get';
-import $6 from './books/$id.refetch.post';
-import $7 from './chapters/read-progress.put';
-import $8 from './chapters/$id.read-progress.put';
-import $9 from './chapters/$id.source.raw.get';
-import $10 from './sources/get';
-import $11 from './sources/refetch.post';
-import $12 from './sources/subscribe.post';
-import $13 from './sources/$id.subscribe.delete';
-import $14 from './sources/$id.subscribe.post';
+import $1 from './auth/delete';
+import $2 from './auth/config.get';
+import $3 from './auth/google/get';
+import $4 from './auth/google/callback.get';
+import $5 from './auth/me.get';
+import $6 from './books/get';
+import $7 from './books/$id.get';
+import $8 from './books/$id.bookmark.delete';
+import $9 from './books/$id.bookmark.post';
+import $10 from './books/$id.chapter.$chapterId.get';
+import $11 from './books/$id.refetch.post';
+import $12 from './chapters/read-progress.put';
+import $13 from './chapters/$id.read-progress.put';
+import $14 from './chapters/$id.source.raw.get';
+import $15 from './sources/get';
+import $16 from './sources/refetch.post';
+import $17 from './sources/subscribe.post';
+import $18 from './sources/$id.subscribe.delete';
+import $19 from './sources/$id.subscribe.post';
 
 const router = Router();
 
 if (isRouteEndpointModule($1)) {
   const route = createRoute($1, { middlewares: [$0] });
-  router.get('/books', route.handler);
+  router.delete('/auth', route.handler);
 }
 if (isRouteEndpointModule($2)) {
   const route = createRoute($2, { middlewares: [$0] });
-  router.get('/books/:id', route.handler);
+  router.get('/auth/config', route.handler);
 }
 if (isRouteEndpointModule($3)) {
   const route = createRoute($3, { middlewares: [$0] });
-  router.delete('/books/:id/bookmark', route.handler);
+  router.get('/auth/google', route.handler);
 }
 if (isRouteEndpointModule($4)) {
   const route = createRoute($4, { middlewares: [$0] });
-  router.post('/books/:id/bookmark', route.handler);
+  router.get('/auth/google/callback', route.handler);
 }
 if (isRouteEndpointModule($5)) {
   const route = createRoute($5, { middlewares: [$0] });
-  router.get('/books/:id/chapter/:chapterId', route.handler);
+  router.get('/auth/me', route.handler);
 }
 if (isRouteEndpointModule($6)) {
   const route = createRoute($6, { middlewares: [$0] });
-  router.post('/books/:id/refetch', route.handler);
+  router.get('/books', route.handler);
 }
 if (isRouteEndpointModule($7)) {
   const route = createRoute($7, { middlewares: [$0] });
-  router.put('/chapters/read-progress', route.handler);
+  router.get('/books/:id', route.handler);
 }
 if (isRouteEndpointModule($8)) {
   const route = createRoute($8, { middlewares: [$0] });
-  router.put('/chapters/:id/read-progress', route.handler);
+  router.delete('/books/:id/bookmark', route.handler);
 }
 if (isRouteEndpointModule($9)) {
   const route = createRoute($9, { middlewares: [$0] });
-  router.get('/chapters/:id/source/raw', route.handler);
+  router.post('/books/:id/bookmark', route.handler);
 }
 if (isRouteEndpointModule($10)) {
   const route = createRoute($10, { middlewares: [$0] });
-  router.get('/sources', route.handler);
+  router.get('/books/:id/chapter/:chapterId', route.handler);
 }
 if (isRouteEndpointModule($11)) {
   const route = createRoute($11, { middlewares: [$0] });
-  router.post('/sources/refetch', route.handler);
+  router.post('/books/:id/refetch', route.handler);
 }
 if (isRouteEndpointModule($12)) {
   const route = createRoute($12, { middlewares: [$0] });
-  router.post('/sources/subscribe', route.handler);
+  router.put('/chapters/read-progress', route.handler);
 }
 if (isRouteEndpointModule($13)) {
   const route = createRoute($13, { middlewares: [$0] });
-  router.delete('/sources/:id/subscribe', route.handler);
+  router.put('/chapters/:id/read-progress', route.handler);
 }
 if (isRouteEndpointModule($14)) {
   const route = createRoute($14, { middlewares: [$0] });
+  router.get('/chapters/:id/source/raw', route.handler);
+}
+if (isRouteEndpointModule($15)) {
+  const route = createRoute($15, { middlewares: [$0] });
+  router.get('/sources', route.handler);
+}
+if (isRouteEndpointModule($16)) {
+  const route = createRoute($16, { middlewares: [$0] });
+  router.post('/sources/refetch', route.handler);
+}
+if (isRouteEndpointModule($17)) {
+  const route = createRoute($17, { middlewares: [$0] });
+  router.post('/sources/subscribe', route.handler);
+}
+if (isRouteEndpointModule($18)) {
+  const route = createRoute($18, { middlewares: [$0] });
+  router.delete('/sources/:id/subscribe', route.handler);
+}
+if (isRouteEndpointModule($19)) {
+  const route = createRoute($19, { middlewares: [$0] });
   router.post('/sources/:id/subscribe', route.handler);
 }
 export const openapiJson = createOpenapiJson(
   {},
   RESOURCES,
   [
-    { method: 'get', path: '/books', module: $1 },
-    { method: 'get', path: '/books/:id', module: $2 },
-    { method: 'delete', path: '/books/:id/bookmark', module: $3 },
-    { method: 'post', path: '/books/:id/bookmark', module: $4 },
-    { method: 'get', path: '/books/:id/chapter/:chapterId', module: $5 },
-    { method: 'post', path: '/books/:id/refetch', module: $6 },
-    { method: 'put', path: '/chapters/read-progress', module: $7 },
-    { method: 'put', path: '/chapters/:id/read-progress', module: $8 },
-    { method: 'get', path: '/chapters/:id/source/raw', module: $9 },
-    { method: 'get', path: '/sources', module: $10 },
-    { method: 'post', path: '/sources/refetch', module: $11 },
-    { method: 'post', path: '/sources/subscribe', module: $12 },
-    { method: 'delete', path: '/sources/:id/subscribe', module: $13 },
-    { method: 'post', path: '/sources/:id/subscribe', module: $14 },
+    { method: 'delete', path: '/auth', module: $1 },
+    { method: 'get', path: '/auth/config', module: $2 },
+    { method: 'get', path: '/auth/google', module: $3 },
+    { method: 'get', path: '/auth/google/callback', module: $4 },
+    { method: 'get', path: '/auth/me', module: $5 },
+    { method: 'get', path: '/books', module: $6 },
+    { method: 'get', path: '/books/:id', module: $7 },
+    { method: 'delete', path: '/books/:id/bookmark', module: $8 },
+    { method: 'post', path: '/books/:id/bookmark', module: $9 },
+    { method: 'get', path: '/books/:id/chapter/:chapterId', module: $10 },
+    { method: 'post', path: '/books/:id/refetch', module: $11 },
+    { method: 'put', path: '/chapters/read-progress', module: $12 },
+    { method: 'put', path: '/chapters/:id/read-progress', module: $13 },
+    { method: 'get', path: '/chapters/:id/source/raw', module: $14 },
+    { method: 'get', path: '/sources', module: $15 },
+    { method: 'post', path: '/sources/refetch', module: $16 },
+    { method: 'post', path: '/sources/subscribe', module: $17 },
+    { method: 'delete', path: '/sources/:id/subscribe', module: $18 },
+    { method: 'post', path: '/sources/:id/subscribe', module: $19 },
   ],
 );
 router.get('/docs/openapi.json', (req, res) => {

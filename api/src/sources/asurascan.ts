@@ -172,11 +172,11 @@ export const sourceAsuraScan: ISource<'asurascan'> = {
               item: {
                 title: {
                   type: 'text',
-                  query: 'h3 > a',
+                  query: 'h3.text-white.font-medium',
                 },
                 url: {
                   type: 'attr',
-                  query: 'h3 > a',
+                  query: 'a',
                   name: 'href',
                 },
                 publishedAt: {

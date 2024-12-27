@@ -1,9 +1,38 @@
 import { identity, omit, pick } from 'lodash';
 
-import { ApiBookDetail, ApiBookSummary, ApiChapter, ApiSource } from './types';
-import { del, get, json, post, put } from './utils';
+import {
+  ApiAuthMe,
+  ApiBookDetail,
+  ApiBookSummary,
+  ApiChapter,
+  ApiSource,
+} from './types';
+import { del, endpointUrl, get, json, post, put } from './utils';
 
 export const API = {
+  auth: {
+    config: get({
+      path: '/auth/config',
+      result: json<{
+        google: {
+          client_id: string;
+          redirect_url: string;
+        } | null;
+      }>,
+    }),
+    google: {
+      startSSO: endpointUrl('/auth/google'),
+    },
+    me: get({
+      path: '/auth/me',
+      result: json<{
+        user: ApiAuthMe;
+      }>,
+      options: {
+        credentials: 'include',
+      },
+    }),
+  },
   sources: {
     list: get({
       path: '/sources',

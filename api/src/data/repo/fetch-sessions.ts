@@ -1,5 +1,5 @@
 import { db } from 'data/db';
-import { FetchSession } from 'data/schema';
+import { FetchSession } from 'data/schemas';
 import { eq } from 'drizzle-orm';
 
 export const FetchSessionRepo = {

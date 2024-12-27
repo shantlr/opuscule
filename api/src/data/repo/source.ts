@@ -1,14 +1,14 @@
-import { ACCURACY } from 'config/constants.js';
-import { defaultLogger, Logger } from 'config/logger.js';
+import { ACCURACY } from 'config/constants';
+import { defaultLogger, Logger } from 'config/logger';
 import { and, eq, gte, inArray, isNull, lt, lte, or } from 'drizzle-orm';
 import { maxBy, partition } from 'lodash';
 
-import { Sources } from '../../sources/index.js';
-import { db } from '../db.js';
-import { Book, Chapter, Source, SourceBook } from '../schema.js';
+import { Sources } from '../../sources';
+import { db } from '../db';
+import { Book, Chapter, Source, SourceBook } from '../schemas';
 
-import { BookRepo } from './books-repo.js';
-import { GlobalSettingsRepo } from './global-settings.js';
+import { BookRepo } from './books-repo';
+import { GlobalSettingsRepo } from './global-settings';
 
 export const SourceRepo = {
   get: {

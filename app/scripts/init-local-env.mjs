@@ -23,7 +23,7 @@ const ENV_PATH = './.env';
 const envFileExists = existsSync(ENV_PATH);
 
 const AUTO_GEN_ENV = {
-  EXPO_PUBLIC_API_URL: `http://${getLocalIp()}:4560`,
+  // EXPO_PUBLIC_API_URL: `http://${getLocalIp()}:4560`,
 };
 
 const GENERATED_MARKER = ' #GENERATED_LOCAL_ENV';

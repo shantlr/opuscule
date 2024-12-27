@@ -1,9 +1,22 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Ionicon from '@expo/vector-icons/Ionicons';
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
+import { ActivityIndicator } from 'react-native';
+
+import { UnauthenticatedFetchError } from '@/common/api/utils';
+import { useAuthMe } from '@/features/auth/use-auth';
 
 export default function TabLayout() {
-  console.log('TabLayout');
+  const { isLoading, error } = useAuthMe({});
+
+  if (isLoading) {
+    return <ActivityIndicator />;
+  }
+
+  if (error instanceof UnauthenticatedFetchError) {
+    return <Redirect href="/sign-in" />;
+  }
+
   return (
     <Tabs
       screenOptions={{ headerShown: false, tabBarActiveTintColor: '#818cf8' }}

@@ -316,7 +316,11 @@ function MobileScreen({ data }: { data: ReturnType<typeof useBook>['data'] }) {
 
 export default function BookDetailsScreen() {
   const { bookId } = useTypedLocalSearchParams('/book/[bookId]');
-  const { data, error } = useBook({ id: bookId });
+  const { data, error } = useBook({
+    params: {
+      id: bookId,
+    },
+  });
 
   const [mode, setMode] = useState<'mark-read' | 'mark-unread' | null>(null);
   const { mutate: updateManyChapterReadProgress } =

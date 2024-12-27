@@ -1,6 +1,25 @@
-import { useQuery, QueryKey } from 'react-query';
+import { useQuery, QueryKey, UseQueryOptions } from 'react-query';
 
 import { FlattenObject } from '@/utils/ts-utils';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type HookOptions<QueryFn extends (...args: any[]) => any> = UseQueryOptions<
+  Parameters<QueryFn>[0],
+  unknown,
+  Awaited<ReturnType<QueryFn>>
+>;
+
+type CreatedHookOptions<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  QueryFn extends (...args: any[]) => any,
+  HookArgs,
+> = [HookArgs] extends [Record<string, never> | undefined]
+  ? HookOptions<QueryFn> & { params?: HookArgs }
+  : HookOptions<QueryFn> & { params: HookArgs };
+
+// Parameters<
+//   typeof useQuery<Parameters<QueryFn>[0], unknown, Awaited<ReturnType<QueryFn>>>
+// >[0];
 
 const createUseQuery = <
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -19,24 +38,30 @@ const createUseQuery = <
     queryKey,
     params,
     enabled,
+    ...options
   }: {
     queryKey: QueryKey | ((args: Parameters<QueryFn>[0]) => QueryKey);
     params?: NotOverrideabledArgs;
     enabled?: (args: HookArgs) => boolean;
+    retry?: HookOptions<QueryFn>['retry'];
   },
 ) => {
-  const useApiQuery = (hookArgs: HookArgs) => {
-    const isEnabled = typeof enabled === 'function' ? enabled(hookArgs) : true;
+  const useApiQuery = (hookArgs: CreatedHookOptions<QueryFn, HookArgs>) => {
+    const isEnabled =
+      typeof enabled === 'function' ? enabled(hookArgs.params) : true;
+
     return useQuery<Awaited<ReturnType<QueryFn>>>({
+      ...options,
+      ...hookArgs,
       queryFn: () =>
         fn({
-          ...hookArgs,
+          ...hookArgs?.params,
           ...params,
         }),
       queryKey: !isEnabled
         ? []
         : typeof queryKey === 'function'
-          ? queryKey(hookArgs)
+          ? queryKey(hookArgs.params)
           : queryKey,
       enabled: isEnabled,
     });

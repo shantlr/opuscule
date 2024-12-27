@@ -4,7 +4,7 @@ import {
   SourceBook,
   UserBookState,
   UserChapterState,
-} from 'data/schema';
+} from 'data/schemas';
 import { and, eq, inArray } from 'drizzle-orm';
 import { chunk, flatMap, groupBy, reduce } from 'lodash';
 

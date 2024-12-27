@@ -2,7 +2,6 @@ const path = require('path');
 
 const { getDefaultConfig } = require('expo/metro-config');
 const { withNativeWind } = require('nativewind/metro');
-
 // Polyfill for requestAnimationFrame (reanimated)
 const raf = require('raf');
 raf.polyfill();
@@ -21,6 +20,18 @@ config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, 'node_modules'),
   path.resolve(monorepoRoot, 'node_modules'),
 ];
+
+const { transformer, resolver } = config;
+
+config.transformer = {
+  ...transformer,
+  babelTransformerPath: require.resolve('react-native-svg-transformer/expo'),
+};
+config.resolver = {
+  ...resolver,
+  assetExts: resolver.assetExts.filter((ext) => ext !== 'svg'),
+  sourceExts: [...resolver.sourceExts, 'svg'],
+};
 
 module.exports = withNativeWind(config, {
   input: './global.css',

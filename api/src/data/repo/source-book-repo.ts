@@ -1,5 +1,5 @@
 import { db } from 'data/db';
-import { SourceBook } from 'data/schema';
+import { SourceBook } from 'data/schemas';
 import { eq } from 'drizzle-orm';
 
 export const SourceBookRepo = {

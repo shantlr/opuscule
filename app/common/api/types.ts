@@ -1,3 +1,7 @@
+export type ApiAuthMe = {
+  id: string;
+};
+
 export type ApiSource = {
   id: string;
   name: string;

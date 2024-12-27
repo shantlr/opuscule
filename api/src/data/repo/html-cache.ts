@@ -1,7 +1,7 @@
 import { eq, like } from 'drizzle-orm';
 
 import { db } from '../db.js';
-import { HtmlCache } from '../schema.js';
+import { HtmlCache } from '../schemas';
 
 export const HtmlCacheRepo = {
   get: {

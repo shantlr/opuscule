@@ -14,8 +14,10 @@ export default function ChapterScreen() {
     '/book/[bookId]/chapter/[chapterId]',
   );
   const { data, isLoading } = useBookChapter({
-    bookId,
-    chapterId,
+    params: {
+      bookId,
+      chapterId,
+    },
   });
   const { mutate: saveProgress } = useSaveReadProgress();
 

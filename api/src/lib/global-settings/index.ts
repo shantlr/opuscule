@@ -1,6 +1,6 @@
 import { defaultLogger, Logger } from 'config/logger';
 import { db } from 'data/db';
-import { GlobalSettings } from 'data/schema';
+import { GlobalSettings } from 'data/schemas';
 import { formatDuration } from 'lib/utils/format-duration';
 import { forEach, map, omit, sortBy } from 'lodash';
 

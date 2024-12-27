@@ -1,6 +1,6 @@
 import { Logger } from 'config/logger';
 import { db } from 'data/db';
-import { Book, UserBookState, Chapter, UserChapterState } from 'data/schema';
+import { Book, UserBookState, Chapter, UserChapterState } from 'data/schemas';
 import {
   SQL,
   and,

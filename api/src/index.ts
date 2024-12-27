@@ -5,6 +5,7 @@ import path from 'path';
 import bodyParser from 'body-parser';
 import { config } from 'config';
 import { logger } from 'config/logger';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import express from 'express';
@@ -27,6 +28,15 @@ const main = async () => {
     process.exit(1);
   }
 
+  if (!config.get('google.oauth.encrypt.refresh.token.secret')) {
+    log.warn(`missing GOOGLE_OAUTH_ENCRYPT_REFRESH_TOKEN_SECRET env var`);
+    const example = crypto.randomBytes(32).toString('hex');
+    log.info(
+      `Here an random one: GOOGLE_OAUTH_ENCRYPT_REFRESH_TOKEN_SECRET=${example}`,
+    );
+    process.exit(1);
+  }
+
   await mkdir(path.parse(config.get('db.path')).dir, {
     recursive: true,
   });
@@ -43,8 +53,10 @@ const main = async () => {
   app.use(
     cors({
       origin: config.get('api.cors.origin'),
+      credentials: true,
     }),
     bodyParser.json(),
+    cookieParser(),
     addLogger(logger),
   );
   app.use(router);

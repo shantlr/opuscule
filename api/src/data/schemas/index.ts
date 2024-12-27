@@ -10,7 +10,9 @@ import {
 } from 'drizzle-orm/sqlite-core';
 import { nanoid } from 'nanoid';
 
-import { Cookie } from './types';
+import { Cookie } from '../types';
+
+export * from './auth';
 
 export const GlobalSettings = sqliteTable('global_settings', {
   id: text('key', {
