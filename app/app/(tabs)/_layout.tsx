@@ -8,8 +8,8 @@ import {
   UnauthenticatedFetchError,
 } from '@/common/api/utils';
 import { Button } from '@/common/ui/button';
+import { ErrorStatusBar } from '@/common/ui/error-status-bar';
 import { LoadingScreen } from '@/common/ui/loading-screen';
-import { StatusBar } from '@/common/ui/status-bar';
 import { useAuthMe } from '@/features/auth/use-auth';
 
 export default function TabLayout() {
@@ -22,7 +22,7 @@ export default function TabLayout() {
   if (!data && error instanceof FailedToFetchError) {
     return (
       <View>
-        <StatusBar>API Unreachable</StatusBar>
+        <ErrorStatusBar>API Unreachable</ErrorStatusBar>
         <View className="w-full items-center">
           <Button
             className="top-4"

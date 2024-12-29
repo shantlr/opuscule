@@ -8,8 +8,8 @@ import {
 } from 'react-native';
 
 import { FailedToFetchError } from '@/common/api/utils';
+import { ErrorStatusBar } from '@/common/ui/error-status-bar';
 import { LoadingScreen } from '@/common/ui/loading-screen';
-import { StatusBar } from '@/common/ui/status-bar';
 import { BooksCarousel } from '@/features/books/ui-books-carousel';
 import { BooksGrid } from '@/features/books/ui-books-grid';
 import {
@@ -33,18 +33,21 @@ export default function Index() {
     <SafeAreaView className="h-full">
       <ScrollView className="px-2 md:px-4">
         {error instanceof FailedToFetchError && (
-          <StatusBar>API unreachable</StatusBar>
+          <ErrorStatusBar>API unreachable</ErrorStatusBar>
         )}
+
         {isLoading && (
           <View className="pt-4">
             <ActivityIndicator />
           </View>
         )}
+
         {!!error && (
           <Text>
             {error instanceof Error ? error.message : 'An error occurred'}
           </Text>
         )}
+
         {!!unreadBookmarked?.books?.length && (
           <View className="w-full mt-8">
             <Text role="heading" className="mb-2 mx-4 text-xl">
@@ -53,6 +56,7 @@ export default function Index() {
             <BooksCarousel books={unreadBookmarked?.books} />
           </View>
         )}
+
         <Text role="heading" className="mb-2 mx-4 text-xl">
           Latests
         </Text>

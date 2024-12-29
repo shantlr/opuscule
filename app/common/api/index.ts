@@ -7,7 +7,22 @@ import {
   ApiChapter,
   ApiSource,
 } from './types';
-import { del, endpointUrl, get, json, post, put } from './utils';
+import {
+  del,
+  endpointUrl,
+  FailedToFetchError,
+  get,
+  json,
+  post,
+  put,
+} from './utils';
+
+export const defaultApiRetry = (retryCount: number, error: unknown) => {
+  if (error instanceof FailedToFetchError) {
+    return false;
+  }
+  return retryCount < 3;
+};
 
 export const API = {
   auth: {

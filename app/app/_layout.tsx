@@ -2,16 +2,13 @@ import { Stack } from 'expo-router';
 import { QueryClient, QueryClientProvider } from 'react-query';
 
 import '../global.css';
-import { FailedToFetchError } from '@/common/api/utils';
+import { defaultApiRetry } from '@/common/api';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry(failureCount, error) {
-        if (error instanceof FailedToFetchError) {
-          return failureCount < 2;
-        }
-        return failureCount < 3;
+      retry(retryCount, error) {
+        return defaultApiRetry(retryCount, error);
       },
     },
   },

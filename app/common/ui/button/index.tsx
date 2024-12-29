@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { ComponentProps, ReactNode } from 'react';
+import { ComponentProps, ComponentRef, forwardRef, ReactNode } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 const variants = {
@@ -17,22 +17,20 @@ const sizes = {
   xs: 'h-[24px]',
 };
 
-export const Button = ({
-  loading,
-  children,
-  variant,
-  size,
-  onPress,
-  className,
-}: {
-  loading?: boolean;
-  children: ReactNode;
-  variant?: keyof typeof variants;
-  size?: keyof typeof sizes;
-  className?: string;
-} & Pick<ComponentProps<typeof Pressable>, 'onPress'>) => {
+export const Button = forwardRef<
+  ComponentRef<typeof Pressable>,
+  {
+    loading?: boolean;
+    children: ReactNode;
+    variant?: keyof typeof variants;
+    size?: keyof typeof sizes;
+    className?: string;
+    circle?: boolean;
+  } & Pick<ComponentProps<typeof Pressable>, 'onPress'>
+>(({ loading, children, variant, size, onPress, className, circle }, ref) => {
   return (
     <Pressable
+      ref={ref}
       role="button"
       onPress={(event) => {
         if (loading) {
@@ -42,10 +40,11 @@ export const Button = ({
         onPress?.(event);
       }}
       className={clsx(
-        'px-2 flex items-center justify-center rounded transition-all',
+        'px-2 flex items-center justify-center  transition-all',
         variants[variant ?? 'default'],
         sizes[size ?? 'default'],
         className,
+        circle ? 'rounded-full' : 'rounded',
       )}
     >
       {loading && <ActivityIndicator />}
@@ -54,4 +53,5 @@ export const Button = ({
       </View>
     </Pressable>
   );
-};
+});
+Button.displayName = 'Button';

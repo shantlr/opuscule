@@ -1,4 +1,4 @@
-import { API } from '@/common/api';
+import { API, defaultApiRetry } from '@/common/api';
 import { createUseMutation } from '@/common/api/create-use-mutation';
 import { createUseQuery } from '@/common/api/create-use-query';
 import { QUERY_KEYS } from '@/common/api/keys';
@@ -14,7 +14,7 @@ export const useAuthMe = createUseQuery(API.auth.me, {
     if (error instanceof FetchError && error.response.status === 401) {
       return false;
     }
-    return retryCount < 3;
+    return defaultApiRetry(retryCount, error);
   },
 });
 

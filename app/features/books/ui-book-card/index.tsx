@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
-import { Image } from 'expo-image';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 import { ApiBookSummary } from '@/common/api/types';
 import { dayjs } from '@/common/dayjs';
+import { Image } from '@/common/ui/image';
 import { LinkPressable } from '@/common/ui/link-pressable';
 
 import { useBookmarkBook, useUnbookmarkBook } from '../use-book';
@@ -79,7 +79,7 @@ export const BookCard = ({
         params: { bookId: book.id },
       }}
       className={clsx(
-        'flex flex-row w-[320px] overflow-hidden p-2 rounded-xl cursor-pointer',
+        'flex flex-row w-[320px] min-w-[320px] overflow-hidden p-2 rounded-xl cursor-pointer',
         {
           'bg-secondarybg': !book.bookmarked,
           'bg-accent': !!book.bookmarked,
@@ -89,8 +89,8 @@ export const BookCard = ({
         'web:hover:scale-105',
       )}
     >
-      <View className="shrink grow w-[320px]">
-        <Text className="font-bold pl-2 pt-2 mb-2">
+      <View className="shrink grow">
+        <Text className="font-bold pl-2 pt-2 mb-2 line-clamp-2">
           {!!book.bookmarked && (
             <View className="mr-1 text-white border border-white rounded px-1">
               <Text>{book.unread_chapters_count}</Text>
@@ -104,9 +104,9 @@ export const BookCard = ({
               className="p-2 hover:bg-mainbg group rounded transition-all"
               key={chapter.id}
             >
-              <Text className="">Chapter {chapter.chapter_id}</Text>
+              <Text className="line-clamp-2">Chapter {chapter.chapter_id}</Text>
               <Text
-                className={clsx({
+                className={clsx('line-clamp-2', {
                   'text-light': !book.bookmarked,
                   'text-white': !!book.bookmarked,
                   'group-hover:text-light': book.bookmarked,
@@ -121,9 +121,10 @@ export const BookCard = ({
         </View>
       </View>
       <View>
-        <View className="relative rounded-xl overflow-hidden">
+        <View className="shrink-0 relative rounded-xl overflow-hidden">
           <Image
             source={book.cover_url}
+            cachePolicy="disk"
             style={{
               width: 160,
               height: 230,

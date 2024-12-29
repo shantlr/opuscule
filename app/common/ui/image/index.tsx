@@ -1,11 +1,10 @@
-import { Image as BaseImage } from 'expo-image';
+import { Image as BaseImage, ImageProps } from 'expo-image';
 import { cssInterop } from 'nativewind';
-import { ComponentProps } from 'react';
 
 cssInterop(BaseImage, {
   className: 'style',
 });
 
-export const Image = (props: ComponentProps<typeof BaseImage>) => {
+export const Image = (props: ImageProps) => {
   return <BaseImage {...props} />;
 };
