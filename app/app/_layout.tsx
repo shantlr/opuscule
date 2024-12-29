@@ -2,8 +2,20 @@ import { Stack } from 'expo-router';
 import { QueryClient, QueryClientProvider } from 'react-query';
 
 import '../global.css';
+import { FailedToFetchError } from '@/common/api/utils';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry(failureCount, error) {
+        if (error instanceof FailedToFetchError) {
+          return failureCount < 2;
+        }
+        return failureCount < 3;
+      },
+    },
+  },
+});
 export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>

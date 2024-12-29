@@ -12,6 +12,7 @@ export class FetchError extends Error {
   }
 }
 export class UnauthenticatedFetchError extends FetchError {}
+export class FailedToFetchError extends Error {}
 
 type FetchConfg<Args, Result, Query = unknown, Body = unknown> = {
   path: string | ((args: Args) => string);
@@ -69,20 +70,31 @@ export const baseCreateFetcher = <Args, Result, Body, Query>({
       }
     }
 
-    const res = await fetch(url, {
-      ...options,
-      method,
-      headers,
-      body,
-    });
+    try {
+      const res = await fetch(url, {
+        ...options,
+        method,
+        headers,
+        body,
+      });
 
-    if (res.status === 401) {
-      throw new UnauthenticatedFetchError(res);
-    } else if (res.status >= 400) {
-      throw new FetchError(res);
+      if (res.status === 401) {
+        throw new UnauthenticatedFetchError(res);
+      } else if (res.status >= 400) {
+        throw new FetchError(res);
+      }
+
+      return await result(res);
+    } catch (err) {
+      if (
+        err instanceof TypeError &&
+        err.message.startsWith('Failed to fetch')
+      ) {
+        throw new FailedToFetchError();
+      }
+
+      throw err;
     }
-
-    return await result(res);
   };
 };
 

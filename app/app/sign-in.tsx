@@ -22,9 +22,9 @@ export default function SignIn() {
 
   if (isLoadingAuthConfig) {
     return (
-      <ScrollView className="flex mt-[50px]">
+      <View className="w-full h-full flex justify-center items-center">
         <ActivityIndicator />
-      </ScrollView>
+      </View>
     );
   }
 

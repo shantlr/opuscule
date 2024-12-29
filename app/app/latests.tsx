@@ -1,6 +1,15 @@
 import { Redirect } from 'expo-router';
-import { SafeAreaView, ScrollView, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
 
+import { FailedToFetchError } from '@/common/api/utils';
+import { LoadingScreen } from '@/common/ui/loading-screen';
+import { StatusBar } from '@/common/ui/status-bar';
 import { BooksCarousel } from '@/features/books/ui-books-carousel';
 import { BooksGrid } from '@/features/books/ui-books-grid';
 import {
@@ -16,10 +25,21 @@ export default function Index() {
     return <Redirect href="/welcome" />;
   }
 
+  if (isLoading && !data) {
+    return <LoadingScreen />;
+  }
+
   return (
     <SafeAreaView className="h-full">
       <ScrollView className="px-2 md:px-4">
-        {isLoading && <Text>Loading...</Text>}
+        {error instanceof FailedToFetchError && (
+          <StatusBar>API unreachable</StatusBar>
+        )}
+        {isLoading && (
+          <View className="pt-4">
+            <ActivityIndicator />
+          </View>
+        )}
         {!!error && (
           <Text>
             {error instanceof Error ? error.message : 'An error occurred'}

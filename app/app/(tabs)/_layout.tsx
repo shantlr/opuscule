@@ -1,16 +1,41 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Ionicon from '@expo/vector-icons/Ionicons';
 import { Redirect, Tabs } from 'expo-router';
-import { ActivityIndicator } from 'react-native';
+import { View } from 'react-native';
 
-import { UnauthenticatedFetchError } from '@/common/api/utils';
+import {
+  FailedToFetchError,
+  UnauthenticatedFetchError,
+} from '@/common/api/utils';
+import { Button } from '@/common/ui/button';
+import { LoadingScreen } from '@/common/ui/loading-screen';
+import { StatusBar } from '@/common/ui/status-bar';
 import { useAuthMe } from '@/features/auth/use-auth';
 
 export default function TabLayout() {
-  const { isLoading, error } = useAuthMe({});
+  const { data, isLoading, error, refetch } = useAuthMe({});
 
-  if (isLoading) {
-    return <ActivityIndicator />;
+  if (isLoading && !error && !data) {
+    return <LoadingScreen />;
+  }
+
+  if (!data && error instanceof FailedToFetchError) {
+    return (
+      <View>
+        <StatusBar>API Unreachable</StatusBar>
+        <View className="w-full items-center">
+          <Button
+            className="top-4"
+            variant="accent"
+            onPress={() => {
+              refetch();
+            }}
+          >
+            Retry
+          </Button>
+        </View>
+      </View>
+    );
   }
 
   if (error instanceof UnauthenticatedFetchError) {
