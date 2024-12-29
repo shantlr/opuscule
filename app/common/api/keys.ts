@@ -94,6 +94,16 @@ export const QUERY_KEYS = createKeyTree({
   // root key
   [K]: [],
 
+  auth: {
+    [K]: 'auth',
+    config: {
+      [K]: 'config',
+    },
+    me: {
+      [K]: 'me',
+    },
+  },
+
   books: {
     [K]: 'books',
     latests: {

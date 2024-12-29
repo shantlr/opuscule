@@ -7,6 +7,8 @@ import {
   View,
 } from 'react-native';
 
+import { Button } from '@/common/ui/button';
+import { useLogout } from '@/features/auth/use-auth';
 import {
   useSources,
   useSubscribeSource,
@@ -18,6 +20,7 @@ export default function Settings() {
 
   const { mutate: subscribe } = useSubscribeSource({});
   const { mutate: unsubscribe } = useUnsubscribeSource({});
+  const { mutate: logout } = useLogout();
 
   return (
     <SafeAreaView className="p-4">
@@ -53,6 +56,16 @@ export default function Settings() {
           </View>
         ))}
       </View>
+
+      <Button
+        className="mt-2"
+        variant="accent"
+        onPress={() => {
+          logout({});
+        }}
+      >
+        LOGOUT
+      </Button>
     </SafeAreaView>
   );
 }

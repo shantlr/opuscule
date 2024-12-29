@@ -17,10 +17,6 @@ type CreatedHookOptions<
   ? HookOptions<QueryFn> & { params?: HookArgs }
   : HookOptions<QueryFn> & { params: HookArgs };
 
-// Parameters<
-//   typeof useQuery<Parameters<QueryFn>[0], unknown, Awaited<ReturnType<QueryFn>>>
-// >[0];
-
 const createUseQuery = <
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   QueryFn extends (...args: any[]) => any,
@@ -48,7 +44,12 @@ const createUseQuery = <
 ) => {
   const useApiQuery = (hookArgs: CreatedHookOptions<QueryFn, HookArgs>) => {
     const isEnabled =
-      typeof enabled === 'function' ? enabled(hookArgs.params) : true;
+      typeof enabled === 'function'
+        ? enabled({
+            ...hookArgs.params,
+            ...params,
+          } as HookArgs)
+        : true;
 
     return useQuery<Awaited<ReturnType<QueryFn>>>({
       ...options,

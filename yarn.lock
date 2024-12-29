@@ -6403,7 +6403,7 @@ __metadata:
     pino: "npm:^9.5.0"
     pino-grove: "npm:^0.0.5"
     prettier: "npm:^3.3.3"
-    proute: "npm:^0.0.2"
+    proute: "npm:^0.0.5"
     sharp: "npm:^0.33.5"
     tough-cookie: "npm:^5.0.0"
     tsx: "npm:^4.17.0"

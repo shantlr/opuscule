@@ -32,6 +32,12 @@ export const API = {
         credentials: 'include',
       },
     }),
+    logout: del({
+      path: '/auth',
+      options: {
+        credentials: 'include',
+      },
+    }),
   },
   sources: {
     list: get({

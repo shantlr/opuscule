@@ -128,6 +128,16 @@ export const AuthRepo = {
         session,
       };
     },
+    disable: async (id: string) => {
+      const session = await db
+        .update(AuthSession)
+        .set({
+          deleted_at: new Date(),
+        })
+        .where(and(eq(AuthSession.id, id)))
+        .returning();
+      return session[0];
+    },
   },
   user: {
     get: {
