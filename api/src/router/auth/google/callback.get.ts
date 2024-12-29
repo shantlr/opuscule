@@ -17,7 +17,6 @@ const conf = endpointConf({
     scope: string(),
   }),
   responses: {
-    200: object({}),
     302: redirect({
       query: object({
         error: optional(

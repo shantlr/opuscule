@@ -9,13 +9,28 @@ type HookOptions<QueryFn extends (...args: any[]) => any> = UseQueryOptions<
   Awaited<ReturnType<QueryFn>>
 >;
 
-type CreatedHookOptions<
+type UseApiQueryReturn<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  QueryFn extends (...args: any[]) => any,
+> = ReturnType<typeof useQuery<Awaited<ReturnType<QueryFn>>>>;
+
+type NonOptionalKeys<T> = {
+  [k in keyof T]-?: undefined extends T[k] ? never : k;
+}[keyof T];
+
+type PickRequiredFields<T> = Pick<T, NonOptionalKeys<T>>;
+
+type UseApiQuery<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   QueryFn extends (...args: any[]) => any,
   HookArgs,
-> = [HookArgs] extends [Record<string, never> | undefined]
-  ? HookOptions<QueryFn> & { params?: HookArgs }
-  : HookOptions<QueryFn> & { params: HookArgs };
+> = [PickRequiredFields<HookArgs>] extends [Record<string, never> | undefined]
+  ? (
+      args?: HookOptions<QueryFn> & { params?: HookArgs },
+    ) => UseApiQueryReturn<QueryFn>
+  : (
+      args: HookOptions<QueryFn> & { params: HookArgs },
+    ) => UseApiQueryReturn<QueryFn>;
 
 const createUseQuery = <
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,11 +57,13 @@ const createUseQuery = <
     retry?: HookOptions<QueryFn>['retry'];
   },
 ) => {
-  const useApiQuery = (hookArgs: CreatedHookOptions<QueryFn, HookArgs>) => {
+  const useApiQuery: UseApiQuery<QueryFn, HookArgs> = (
+    hookArgs: Parameters<UseApiQuery<QueryFn, HookArgs>>[0],
+  ) => {
     const isEnabled =
       typeof enabled === 'function'
         ? enabled({
-            ...hookArgs.params,
+            ...hookArgs?.params,
             ...params,
           } as HookArgs)
         : true;
@@ -62,7 +79,7 @@ const createUseQuery = <
       queryKey: !isEnabled
         ? []
         : typeof queryKey === 'function'
-          ? queryKey(hookArgs.params)
+          ? queryKey(hookArgs?.params)
           : queryKey,
       enabled: isEnabled,
     });
