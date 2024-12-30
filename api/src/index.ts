@@ -4,23 +4,23 @@ import path from 'path';
 
 import bodyParser from 'body-parser';
 import { config } from 'config';
-import { logger } from 'config/logger';
+import { defaultLogger, logger } from 'config/logger';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import { SourceRepo } from 'data/repo/source';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import express from 'express';
 import { addLogger } from 'pino-grove/express';
+import { Sources } from 'sources';
 
 import { db } from './data/db';
 import { setupCronJobs } from './lib/cron-jobs';
 import { checkGlobalSettings } from './lib/global-settings';
-import { router } from './router';
+import { router } from './router/proute.generated.router';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
-const main = async () => {
-  const log = logger.scope('startup');
-
+const assertConfig = (log = defaultLogger) => {
   if (!config.get('chapter.page.s3KeyRand.seed')) {
     log.warn(`missing CHAPTER_PAGE_S3_KEY_RAND_SEED env var`);
     const example = crypto.randomBytes(16).toString('base64');
@@ -36,6 +36,16 @@ const main = async () => {
     );
     process.exit(1);
   }
+};
+
+const initSources = async () => {
+  await SourceRepo.ensureCreateds(Sources.map((s) => s.id));
+};
+
+const main = async () => {
+  const log = logger.scope('startup');
+
+  assertConfig(log);
 
   await mkdir(path.parse(config.get('db.path')).dir, {
     recursive: true,
@@ -44,6 +54,8 @@ const main = async () => {
     migrationsFolder: path.resolve(__dirname, '../drizzle'),
   });
   log.info(`db migrated`);
+
+  await initSources();
 
   await checkGlobalSettings();
   await setupCronJobs();

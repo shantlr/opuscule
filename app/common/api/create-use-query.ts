@@ -15,7 +15,7 @@ type UseApiQueryReturn<
 > = ReturnType<typeof useQuery<Awaited<ReturnType<QueryFn>>>>;
 
 type NonOptionalKeys<T> = {
-  [k in keyof T]-?: undefined extends T[k] ? never : k;
+  [K in keyof T]-?: undefined extends T[K] ? never : K;
 }[keyof T];
 
 type PickRequiredFields<T> = Pick<T, NonOptionalKeys<T>>;

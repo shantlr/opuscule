@@ -1,12 +1,12 @@
 import { logger } from 'config/logger';
+import { authenticated } from 'middlewares';
 import { endpointConf, EndpointHandler } from 'proute';
 import { fetchSourceLatests, Sources } from 'sources';
-import { object, array, string, literal, union } from 'valibot';
+import { object, array, string, literal, picklist } from 'valibot';
 
-import { ROUTES } from '../base-conf';
+import { ROUTES } from '../proute.generated.routes';
 
-const conf = endpointConf({
-  route: ROUTES.post['/sources/refetch'],
+const conf = endpointConf(ROUTES.post['/sources/refetch'], {
   description: 'Refetch sources',
   body: object({
     source_ids: array(string()),
@@ -15,11 +15,11 @@ const conf = endpointConf({
     200: object({}),
     400: object({
       success: literal(false),
-      error: union([literal('UNKNOWN_SOURCE')]),
+      error: picklist(['UNKNOWN_SOURCE']),
     }),
     500: null,
   },
-});
+}).middleware(authenticated);
 
 const handler: EndpointHandler<typeof conf> = async ({
   body: { source_ids },

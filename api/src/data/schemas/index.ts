@@ -12,6 +12,8 @@ import { nanoid } from 'nanoid';
 
 import { Cookie } from '../types';
 
+import { User } from './auth';
+
 export * from './auth';
 
 export const GlobalSettings = sqliteTable('global_settings', {
@@ -122,6 +124,9 @@ export const Chapter = sqliteTable(
 export const UserBookState = sqliteTable(
   'user_book_states',
   {
+    user_id: text('user_id')
+      .notNull()
+      .references(() => User.id),
     book_id: text('book_id').notNull(),
     unread_count: integer('unread_count'),
     bookmarked: integer('bookmarked', { mode: 'boolean' }).$defaultFn(
@@ -132,13 +137,16 @@ export const UserBookState = sqliteTable(
     ),
   },
   (t) => ({
-    unique: unique('unique_user_book_state').on(t.book_id),
+    unique: unique('unique_user_book_state').on(t.user_id, t.book_id),
   }),
 );
 
 export const UserChapterState = sqliteTable(
   'user_chapter_states',
   {
+    user_id: text('user_id')
+      .notNull()
+      .references(() => User.id),
     chapter_id: text('chapter_id')
       .notNull()
       .references(() => Chapter.id),
@@ -148,17 +156,27 @@ export const UserChapterState = sqliteTable(
     current_page: integer('current_page').$defaultFn(() => 0),
   },
   (t) => ({
-    unique: unique('unique_user_chapter_state').on(t.chapter_id),
+    unique: unique('unique_user_chapter_state').on(t.user_id, t.chapter_id),
   }),
 );
 
 export const Source = sqliteTable('sources', {
   id: text('id').primaryKey(),
-  subscribed: integer('subscribed', { mode: 'boolean' }).$defaultFn(
-    () => false,
-  ),
   last_fetched_latests_at: integer('last_fetch', { mode: 'timestamp_ms' }),
 });
+
+export const UserSource = sqliteTable(
+  'user_sources',
+  {
+    source_id: text('source_id'),
+    user_id: text('user_id'),
+    subscribed: integer('subscribed', { mode: 'boolean' }),
+    subscribed_at: integer('subscribed_at', { mode: 'timestamp_ms' }),
+  },
+  (t) => ({
+    unique: unique('unique_user_source').on(t.user_id, t.source_id),
+  }),
+);
 export const SourceBook = sqliteTable(
   'source_books',
   {
@@ -203,8 +221,18 @@ export const userBookStateRelations = relations(UserBookState, (rel) => ({
   }),
 }));
 export const sourceRelations = relations(Source, (rel) => ({
+  userSubscribed: rel.many(UserSource, {
+    relationName: 'source',
+  }),
   sourceBooks: rel.many(SourceBook, {
     relationName: 'source',
+  }),
+}));
+export const userSourceRelations = relations(UserSource, (rel) => ({
+  source: rel.one(Source, {
+    relationName: 'source',
+    fields: [UserSource.source_id],
+    references: [Source.id],
   }),
 }));
 export const sourceBookRelations = relations(SourceBook, (rel) => ({
@@ -251,10 +279,3 @@ export const userChapterStateRelations = relations(UserChapterState, (rel) => ({
     references: [Chapter.id],
   }),
 }));
-
-// export const UserSource = sqliteTable('user_sources', {
-//   id: text('id').primaryKey(),
-//   user_id: text('user_id'),
-//   subscribed: integer('subscribed', { mode: 'boolean' }),
-//   subscribed_at: integer('subscribed_at', { mode: 'timestamp_ms' }),
-// });

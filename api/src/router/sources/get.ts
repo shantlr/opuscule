@@ -1,11 +1,11 @@
 import { SourceRepo } from 'data/repo/source';
+import { authenticated } from 'middlewares';
 import { EndpointHandler, endpointConf } from 'proute';
-import { ROUTES } from 'router/base-conf';
+import { ROUTES } from 'router/proute.generated.routes';
 import { Sources } from 'sources';
 import { boolean, array, object, string } from 'valibot';
 
-const conf = endpointConf({
-  route: ROUTES.get['/sources'],
+const conf = endpointConf(ROUTES.get['/sources'], {
   responses: {
     200: array(
       object({
@@ -17,10 +17,10 @@ const conf = endpointConf({
     ),
     500: null,
   },
-});
+}).middleware(authenticated);
 
-const handler: EndpointHandler<typeof conf> = async () => {
-  const subscribedSources = await SourceRepo.get.listSubscribed();
+const handler: EndpointHandler<typeof conf> = async ({ user }) => {
+  const subscribedSources = await SourceRepo.get.listSubscribed(user.id);
   return {
     status: 200,
     data: Sources.map((s) => ({

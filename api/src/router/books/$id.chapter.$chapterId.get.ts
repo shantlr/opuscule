@@ -1,12 +1,12 @@
 import { logger } from 'config/logger';
 import { BookRepo } from 'data/repo/books-repo';
 import { fetchChapter } from 'lib/cron-jobs/fetch-chapter';
+import { authenticated } from 'middlewares';
 import { endpointConf, EndpointHandler } from 'proute';
-import { RESOURCES, ROUTES } from 'router/base-conf';
+import { RESOURCES, ROUTES } from 'router/proute.generated.routes';
 import { object } from 'valibot';
 
-const conf = endpointConf({
-  route: ROUTES.get['/books/:id/chapter/:chapterId'],
+const conf = endpointConf(ROUTES.get['/books/:id/chapter/:chapterId'], {
   responses: {
     200: object({
       chapter: RESOURCES.chapter,
@@ -14,7 +14,7 @@ const conf = endpointConf({
     404: null,
     500: null,
   },
-});
+}).middleware(authenticated);
 
 const handler: EndpointHandler<typeof conf> = async ({
   params: { chapterId },

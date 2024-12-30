@@ -45,7 +45,6 @@ CREATE TABLE `html_caches` (
 --> statement-breakpoint
 CREATE TABLE `sources` (
 	`id` text PRIMARY KEY NOT NULL,
-	`subscribed` integer,
 	`last_fetch` integer
 );
 --> statement-breakpoint
@@ -69,20 +68,59 @@ CREATE TABLE `source_books` (
 );
 --> statement-breakpoint
 CREATE TABLE `user_book_states` (
+	`user_id` text NOT NULL,
 	`book_id` text NOT NULL,
 	`unread_count` integer,
 	`bookmarked` integer,
-	`updated_at` integer
+	`updated_at` integer,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE `user_chapter_states` (
+	`user_id` text NOT NULL,
 	`chapter_id` text NOT NULL,
 	`read` integer,
+	`read_at` integer,
 	`percentage` real,
 	`current_page` integer,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`chapter_id`) REFERENCES `chapters`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
+CREATE TABLE `user_sources` (
+	`source_id` text,
+	`user_id` text,
+	`subscribed` integer,
+	`subscribed_at` integer
+);
+--> statement-breakpoint
+CREATE TABLE `auth_sessions` (
+	`id` text PRIMARY KEY NOT NULL,
+	`token` text NOT NULL,
+	`origin` text NOT NULL,
+	`user_id` text NOT NULL,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL,
+	`expires_at` integer NOT NULL,
+	`deleted_at` integer
+);
+--> statement-breakpoint
+CREATE TABLE `users` (
+	`id` text PRIMARY KEY NOT NULL,
+	`first_name` text,
+	`last_name` text,
+	`full_name` text,
+	`email` text,
+	`google_sub` text,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL,
+	`google_encrypted_refresh_token` text,
+	`google_encrypted_refresh_token_iv` text
+);
+--> statement-breakpoint
 CREATE UNIQUE INDEX `unique_source_chapter` ON `chapters` (`source_id`,`source_book_id`,`chapter_id`);--> statement-breakpoint
-CREATE UNIQUE INDEX `unique_user_book_state` ON `user_book_states` (`book_id`);--> statement-breakpoint
-CREATE UNIQUE INDEX `unique_user_chapter_state` ON `user_chapter_states` (`chapter_id`);
+CREATE UNIQUE INDEX `unique_user_book_state` ON `user_book_states` (`user_id`,`book_id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `unique_user_chapter_state` ON `user_chapter_states` (`user_id`,`chapter_id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `unique_user_source` ON `user_sources` (`user_id`,`source_id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `users_email_unique` ON `users` (`email`);--> statement-breakpoint
+CREATE UNIQUE INDEX `users_google_sub_unique` ON `users` (`google_sub`);

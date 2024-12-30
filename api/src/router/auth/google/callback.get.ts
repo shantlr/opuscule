@@ -5,12 +5,11 @@ import { GOOGLE_AUTH } from 'lib/auth';
 import { endpointConf, EndpointHandler, redirect } from 'proute';
 import { object, string, union, literal, optional } from 'valibot';
 
-import { ROUTES } from '../../base-conf';
+import { ROUTES } from '../../proute.generated.routes';
 
 import { googleOauthStateCache } from './state-cache';
 
-const conf = endpointConf({
-  route: ROUTES.get['/auth/google/callback'],
+const conf = endpointConf(ROUTES.get['/auth/google/callback'], {
   query: object({
     state: string(),
     code: string(),

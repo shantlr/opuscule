@@ -24,7 +24,9 @@ export const fetchLatests = async ({
   const sources = await SourceRepo.get.sourceToFetchLatests({
     force: opt?.force,
   });
-  log.info(`starting, sources=${sources.length}`);
+  log.info(
+    `starting, sources=${sources?.length ? sources.map((s) => s.id).join(',') : '<none>'}`,
+  );
 
   for (const { id } of sources) {
     const source = SourcesByID[id];

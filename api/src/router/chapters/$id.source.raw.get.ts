@@ -1,24 +1,24 @@
 import { BookRepo } from 'data/repo/books-repo';
 import { HtmlCacheRepo } from 'data/repo/html-cache';
 import { SourceBookRepo } from 'data/repo/source-book-repo';
+import { authenticated } from 'middlewares';
 import { endpointConf, EndpointHandler } from 'proute';
 import { Sources } from 'sources';
-import { object, union, literal, string, nullish } from 'valibot';
+import { object, string, nullish, picklist } from 'valibot';
 
-import { ROUTES } from '../base-conf';
+import { ROUTES } from '../proute.generated.routes';
 
-const conf = endpointConf({
-  route: ROUTES.get['/chapters/:id/source/raw'],
+const conf = endpointConf(ROUTES.get['/chapters/:id/source/raw'], {
   responses: {
     200: object({
       content: nullish(string()),
     }),
     400: object({
-      error: union([literal('UNKNOWN_SOURCE'), literal('UNKNOWN_SOURCE_BOOK')]),
+      error: picklist(['UNKNOWN_SOURCE', 'UNKNOWN_SOURCE_BOOK']),
     }),
     404: null,
   },
-});
+}).middleware(authenticated);
 
 const handler: EndpointHandler<typeof conf> = async ({
   params: { id },

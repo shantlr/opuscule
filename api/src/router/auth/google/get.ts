@@ -2,21 +2,18 @@ import { randomBytes } from 'crypto';
 
 import { GOOGLE_AUTH } from 'lib/auth';
 import { endpointConf, EndpointHandler, redirect } from 'proute';
-import { object } from 'valibot';
 
-import { ROUTES } from '../../base-conf';
+import { ROUTES } from '../../proute.generated.routes';
 
 import { googleOauthStateCache } from './state-cache';
 
-const conf = endpointConf({
-  route: ROUTES.get['/auth/google'],
+const conf = endpointConf(ROUTES.get['/auth/google'], {
   responses: {
-    200: object({}),
-    302: redirect(),
+    302: redirect({}),
   },
 });
 
-const handler: EndpointHandler<typeof conf> = async ({}): ReturnType<
+const handler: EndpointHandler<typeof conf> = async (): ReturnType<
   EndpointHandler<typeof conf>
 > => {
   const state = randomBytes(64).toString('base64');

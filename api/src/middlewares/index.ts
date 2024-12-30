@@ -1,11 +1,12 @@
 import { config } from 'config';
 import { logger } from 'config/logger';
 import { AuthRepo } from 'data/repo/auth-repo';
-import { createMiddleware } from 'proute';
-import { literal, object, optional, union, undefined } from 'valibot';
+import { createMiddleware } from 'router/proute.utils';
+import { literal, object, optional, union } from 'valibot';
 
 export const authenticated = createMiddleware(
   {
+    security: ['SessionCookie'],
     responses: {
       401: object({
         error: optional(
@@ -16,7 +17,7 @@ export const authenticated = createMiddleware(
           ]),
         ),
       }),
-      500: undefined(),
+      500: null,
     },
   },
   async function authenticatedMdw({ req }) {

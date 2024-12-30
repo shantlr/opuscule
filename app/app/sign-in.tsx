@@ -2,6 +2,7 @@ import { Redirect } from 'expo-router';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
+import { ErrorStatusBar } from '@/common/ui/error-status-bar';
 import GoogleSignIn from '@/features/auth/ui-google-sign-in';
 import { useAuthConfig, useAuthMe } from '@/features/auth/use-auth';
 
@@ -28,6 +29,8 @@ export default function SignIn() {
     );
   }
 
+  const noAuthConfig = !authConfig?.google;
+
   return (
     <ScrollView className="p-4 flex flex-col items-center">
       <Text className="text-center mt-12">Sign in</Text>
@@ -37,6 +40,11 @@ export default function SignIn() {
             clientId={authConfig.google.client_id}
             redirectUrl={authConfig.google.redirect_url}
           />
+        )}
+        {!!noAuthConfig && (
+          <ErrorStatusBar>
+            No auth config found. Please contact the administrator.
+          </ErrorStatusBar>
         )}
       </View>
     </ScrollView>

@@ -5,7 +5,7 @@ import { maxBy, partition } from 'lodash';
 
 import { Sources } from '../../sources';
 import { db } from '../db';
-import { Book, Chapter, Source, SourceBook } from '../schemas';
+import { Book, Chapter, Source, SourceBook, UserSource } from '../schemas';
 
 import { BookRepo } from './books-repo';
 import { GlobalSettingsRepo } from './global-settings';
@@ -15,63 +15,99 @@ export const SourceRepo = {
     sourceToFetchLatests: async (opt?: { force?: boolean }) => {
       const globalSettings = (await GlobalSettingsRepo.get())!;
       const sources = !opt?.force
-        ? await db.query.Source.findMany({
-            where: or(
-              isNull(Source.last_fetched_latests_at),
-              lte(
-                Source.last_fetched_latests_at,
-                new Date(
-                  Date.now() - globalSettings.fetch_latests_min_delay_ms,
+        ? await db
+            .select({
+              id: Source.id,
+              last_fetched_latests_at: Source.last_fetched_latests_at,
+            })
+            .from(Source)
+            .where(
+              or(
+                isNull(Source.last_fetched_latests_at),
+                lte(
+                  Source.last_fetched_latests_at,
+                  new Date(
+                    Date.now() - globalSettings.fetch_latests_min_delay_ms,
+                  ),
                 ),
               ),
-            ),
-          })
-        : db.query.Source.findMany({});
+            )
+            .innerJoin(UserSource, eq(UserSource.source_id, Source.id))
+        : await db
+            .select({
+              id: Source.id,
+              last_fetched_latests_at: Source.last_fetched_latests_at,
+            })
+            .from(Source)
+            .innerJoin(UserSource, eq(UserSource.source_id, Source.id));
+
       return sources;
     },
-    listSubscribed: async () => {
-      return db.query.Source.findMany({
-        where: eq(Source.subscribed, true),
-      });
+    listSubscribed: async (userId: string | null) => {
+      return db
+        .select({
+          id: Source.id,
+          last_fetched_latests_at: Source.last_fetched_latests_at,
+        })
+        .from(Source)
+        .innerJoin(
+          UserSource,
+          and(
+            eq(UserSource.source_id, Source.id),
+            userId ? eq(UserSource.user_id, userId) : undefined,
+          ),
+        );
     },
   },
 
-  ensureCreated: async (sourceId: string) => {
+  ensureCreateds: async (sourceIds: string[]) => {
     await db
       .insert(Source)
-      .values({
-        id: sourceId,
-        last_fetched_latests_at: null,
-      })
+      .values(
+        sourceIds.map((sourceId) => ({
+          id: sourceId,
+          last_fetched_latests_at: null,
+        })),
+      )
       .onConflictDoNothing({
         target: [Source.id],
       });
   },
 
   updates: {
-    subscribeMany: async (sourceIds: string[]) => {
+    subscribeMany: async ({
+      userId,
+      sourceIds,
+    }: {
+      userId: string;
+      sourceIds: string[];
+    }) => {
       await db.transaction(async (tx) => {
         for (const sourceId of sourceIds) {
-          await SourceRepo.updates.subscribe(sourceId, { tx });
+          await SourceRepo.updates.subscribe({ userId, sourceId, tx });
         }
       });
     },
-    subscribe: async (
-      sourceId: string,
-      {
-        logger = defaultLogger,
-        tx = db,
-      }: {
-        logger?: Logger;
-        tx?: typeof db;
-      } = {},
-    ) => {
+    subscribe: async ({
+      sourceId,
+      userId,
+      logger = defaultLogger,
+      tx = db,
+    }: {
+      sourceId: string;
+      userId: string;
+      logger?: Logger;
+      tx?: typeof db;
+    }) => {
       await tx.transaction(async (t) => {
         if (!Sources.find((s) => s.id === sourceId)) {
           throw new Error(`UNKNOWN_SOURCE`);
         }
-        const existing = await t.query.Source.findFirst({
-          where: eq(Source.id, sourceId),
+        const existing = await t.query.UserSource.findFirst({
+          where: and(
+            eq(UserSource.source_id, sourceId),
+            eq(UserSource.user_id, userId),
+          ),
         });
         if (existing) {
           if (existing.subscribed) {
@@ -79,32 +115,55 @@ export const SourceRepo = {
           }
 
           await t
-            .update(Source)
-            .set({ subscribed: true })
-            .where(eq(Source.id, sourceId));
+            .update(UserSource)
+            .set({ subscribed: true, subscribed_at: new Date() })
+            .where(
+              and(
+                eq(UserSource.source_id, sourceId),
+                eq(UserSource.user_id, userId),
+              ),
+            );
           return;
         }
 
-        await t.insert(Source).values({
-          id: sourceId,
-          last_fetched_latests_at: null,
+        await t.insert(UserSource).values({
+          source_id: sourceId,
+          user_id: userId,
+          subscribed: true,
+          subscribed_at: new Date(),
         });
       });
       logger.info(`[source] subscribed: ${sourceId}`);
     },
-    unsubscribe: async (sourceId: string, logger = defaultLogger) => {
+    unsubscribe: async ({
+      sourceId,
+      userId,
+      logger = defaultLogger,
+    }: {
+      userId: string;
+      sourceId: string;
+      logger?: Logger;
+    }) => {
       await db.transaction(async (t) => {
-        const existing = await t.query.Source.findFirst({
-          where: eq(Source.id, sourceId),
+        const existing = await t.query.UserSource.findFirst({
+          where: and(
+            eq(UserSource.source_id, sourceId),
+            eq(UserSource.user_id, userId),
+          ),
         });
-        console.log(existing);
+
         if (existing && existing.subscribed) {
           await t
-            .update(Source)
+            .update(UserSource)
             .set({
               subscribed: false,
             })
-            .where(eq(Source.id, sourceId));
+            .where(
+              and(
+                eq(UserSource.source_id, sourceId),
+                eq(UserSource.user_id, userId),
+              ),
+            );
         }
       });
       logger.info(`[source] unsubscribed: ${sourceId}`);
@@ -231,6 +290,7 @@ export const SourceRepo = {
               eq(SourceBook.source_id, sourceId),
               eq(SourceBook.source_book_id, sourceBookId),
               or(
+                isNull(SourceBook.description),
                 isNull(SourceBook.description_accuracy),
                 lte(
                   SourceBook.description_accuracy,
@@ -352,9 +412,9 @@ export const SourceRepo = {
           .insert(Book)
           .values({
             title: sb.title,
+            description: sb.description,
             cover_s3_key: sb.cover_s3_key,
             cover_s3_bucket: sb.cover_s3_bucket,
-            description: sb.description,
           })
           .returning();
         await t

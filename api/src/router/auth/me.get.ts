@@ -2,10 +2,9 @@ import { authenticated } from 'middlewares';
 import { endpointConf, EndpointHandler } from 'proute';
 import { object, string } from 'valibot';
 
-import { ROUTES } from '../base-conf';
+import { ROUTES } from '../proute.generated.routes';
 
-const conf = endpointConf({
-  route: ROUTES.get['/auth/me'],
+const conf = endpointConf(ROUTES.get['/auth/me'], {
   responses: {
     200: object({
       user: object({

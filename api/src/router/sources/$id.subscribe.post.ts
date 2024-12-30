@@ -1,25 +1,28 @@
 import { logger } from 'config/logger';
 import { SourceRepo } from 'data/repo/source';
+import { authenticated } from 'middlewares';
 import { endpointConf, EndpointHandler } from 'proute';
-import { ROUTES } from 'router/base-conf';
+import { ROUTES } from 'router/proute.generated.routes';
 import { fetchSourceLatests, Sources } from 'sources';
-import { boolean, object, union, literal } from 'valibot';
+import { boolean, object, picklist } from 'valibot';
 
-const conf = endpointConf({
-  route: ROUTES.post['/sources/:id/subscribe'],
+const conf = endpointConf(ROUTES.post['/sources/:id/subscribe'], {
   responses: {
     200: object({
       success: boolean(),
     }),
     400: object({
       success: boolean(),
-      error: union([literal('UNKNOWN_SOURCE')]),
+      error: picklist(['UNKNOWN_SOURCE']),
     }),
     500: null,
   },
-});
+}).middleware(authenticated);
 
-const handler: EndpointHandler<typeof conf> = async ({ params: { id } }) => {
+const handler: EndpointHandler<typeof conf> = async ({
+  params: { id },
+  user,
+}) => {
   try {
     const source = Sources.find((s) => s.id === id);
     if (!source) {
@@ -32,7 +35,10 @@ const handler: EndpointHandler<typeof conf> = async ({ params: { id } }) => {
       };
     }
 
-    await SourceRepo.updates.subscribe(id);
+    await SourceRepo.updates.subscribe({
+      sourceId: id,
+      userId: user.id,
+    });
     logger.info(`[fetch-source-latests] ${source.id} started (from=subscribe)`);
     void fetchSourceLatests(source!).catch((err) => {
       logger.error(

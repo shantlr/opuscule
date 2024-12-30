@@ -49,11 +49,12 @@ export const chapter = createResource({
     source_id: input.source_id,
     source_book_id: input.source_book_id,
 
-    pages: (input.pages as any[]).map((page) => ({
-      url: formatPublicS3Url(page.s3_bucket, page.s3_key),
-      width: page.width,
-      height: page.height,
-    })),
+    pages:
+      input.pages?.map((page) => ({
+        url: formatPublicS3Url(page.s3_bucket, page.s3_key),
+        width: page.width,
+        height: page.height,
+      })) ?? [],
 
     published_at: input.published_at,
     created_at: input.created_at,

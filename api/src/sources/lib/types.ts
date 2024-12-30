@@ -57,9 +57,11 @@ export type FetchPage = {
    * Execute operation on current page
    */
   map: <MapOp extends Op>(op: MapOp) => OpOutput<MapOp>;
+  close?: () => Promise<void>;
 };
 export type FetcherSession = {
   go: (url: string) => Promise<FetchPage>;
+  close?: () => Promise<void>;
 };
 export type SourceContext = {
   logger: Logger;
@@ -71,6 +73,8 @@ export type SourceContext = {
     baseUrl?: string;
     ignorePrevSession?: boolean;
   }) => Promise<FetcherSession>;
+
+  close: () => Promise<void>;
 
   books: {
     upsert: (

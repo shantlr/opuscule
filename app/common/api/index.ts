@@ -58,22 +58,37 @@ export const API = {
     list: get({
       path: '/sources',
       result: json<ApiSource[]>,
+      options: {
+        credentials: 'include',
+      },
     }),
     subscribe: post({
       path: ({ id }: { id: string }) => `/sources/${id}/subscribe`,
+      options: {
+        credentials: 'include',
+      },
     }),
     subscribeMany: post({
       path: '/sources/subscribe',
       body: identity<{ source_ids: string[] }>,
       result: json<{}>,
+      options: {
+        credentials: 'include',
+      },
     }),
     refetchMany: post({
       path: '/sources/refetch',
       body: identity<{ source_ids: string[] }>,
       result: json<{}>,
+      options: {
+        credentials: 'include',
+      },
     }),
     unsubscribe: del({
       path: ({ id }: { id: string }) => `/sources/${id}/subscribe`,
+      options: {
+        credentials: 'include',
+      },
     }),
   },
   books: {
@@ -82,15 +97,24 @@ export const API = {
       query: (params: { bookmarked?: boolean; has_unrad?: boolean }) =>
         pick(params, ['bookmarked', 'has_unread']),
       result: json<{ books: ApiBookSummary[] }>,
+      options: {
+        credentials: 'include',
+      },
     }),
 
     bookmark: post({
       path: ({ id }: { id: string }) => `/books/${id}/bookmark`,
       result: json<{ book: ApiBookSummary }>,
+      options: {
+        credentials: 'include',
+      },
     }),
     unbookmark: del({
       path: ({ id }: { id: string }) => `/books/${id}/bookmark`,
       result: json<{ book: ApiBookSummary }>,
+      options: {
+        credentials: 'include',
+      },
     }),
 
     get: get({
@@ -98,10 +122,16 @@ export const API = {
       result: json<{
         book: ApiBookDetail;
       }>,
+      options: {
+        credentials: 'include',
+      },
     }),
     refetch: post({
       path: ({ id }: { id: string }) => `/books/${id}/refetch`,
       result: json<{ book: ApiBookDetail }>,
+      options: {
+        credentials: 'include',
+      },
     }),
 
     chapters: {
@@ -111,6 +141,9 @@ export const API = {
         result: json<{
           chapter: ApiChapter;
         }>,
+        options: {
+          credentials: 'include',
+        },
       }),
       saveReadProgress: put({
         path: ({
@@ -124,12 +157,18 @@ export const API = {
         result: json<{
           chapter: ApiChapter;
         }>,
+        options: {
+          credentials: 'include',
+        },
       }),
       source: {
         raw: get({
           path: ({ id }: { id: string }) => `/chapters/${id}/source/raw`,
           result: json<{ content: string | null } | null>,
         }),
+        options: {
+          credentials: 'include',
+        },
       },
     },
   },
@@ -142,6 +181,9 @@ export const API = {
           bookId?: string;
         }) => omit(body, ['bookId']),
         result: json<{}>,
+        options: {
+          credentials: 'include',
+        },
       }),
     },
   },

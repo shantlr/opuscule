@@ -18,7 +18,7 @@ import { keyBy } from 'lodash';
 import { FetchPictureJob, fetchPictures } from 'sources/lib/fetch-pictures';
 
 import { SourceRepo } from './source';
-import { UserStateRepo } from './use-state';
+import { UserStateRepo } from './user-state';
 import { shouldUpdateTextWithAccuracy } from './utils';
 
 export const BookRepo = {
@@ -28,8 +28,14 @@ export const BookRepo = {
         where: eq(Book.id, id),
       });
     },
-    byIdWithChapters: async (id: string) => {
-      return await db.query.Book.findFirst({
+    byIdWithChapters: async ({
+      id,
+      userId,
+    }: {
+      id: string;
+      userId: string;
+    }) => {
+      const book = await db.query.Book.findFirst({
         where: eq(Book.id, id),
         with: {
           sourceBooks: {
@@ -43,17 +49,49 @@ export const BookRepo = {
                   source_id: true,
                   published_at: true,
                 },
-                with: {
-                  userState: true,
-                },
               },
             },
           },
         },
       });
+      if (!book) {
+        return null;
+      }
+
+      const bookWithChapterState = book as Omit<typeof book, 'sourceBooks'> & {
+        sourceBooks: (Omit<(typeof book)['sourceBooks'][number], 'chapters'> & {
+          chapters: ((typeof book)['sourceBooks'][number]['chapters'][number] & {
+            userState: Awaited<
+              ReturnType<typeof UserStateRepo.get.userChapterStates>
+            >[number];
+          })[];
+        })[];
+      };
+
+      const chapterIds = book.sourceBooks.flatMap((b) =>
+        b.chapters.map((c) => c.id),
+      );
+      if (chapterIds.length) {
+        const userChapterStates = await UserStateRepo.get.userChapterStates({
+          userId,
+          chapterIds,
+        });
+        const stateByChapterId = keyBy(
+          userChapterStates,
+          (ucs) => ucs.chapter_id,
+        );
+        bookWithChapterState.sourceBooks.forEach((sb) => {
+          sb.chapters.forEach((c) => {
+            c.userState = stateByChapterId[c.id];
+          });
+        });
+      }
+
+      return book;
     },
     latestUpdateds: async (query?: {
       bookIds?: string[];
+      userId?: string;
       bookmarked?: boolean;
       hasUnread?: boolean;
     }) => {
@@ -62,9 +100,12 @@ export const BookRepo = {
       if (Array.isArray(query?.bookIds) && query.bookIds.length) {
         cond.push(inArray(Book.id, query.bookIds));
       }
-      if (typeof query?.bookmarked === 'boolean') {
+      if (typeof query?.bookmarked === 'boolean' && query?.userId) {
         const bookmarked = await db.query.UserBookState.findMany({
-          where: eq(UserBookState.bookmarked, true),
+          where: and(
+            eq(UserBookState.bookmarked, true),
+            eq(UserBookState.user_id, query.userId),
+          ),
         });
         if (!bookmarked.length) {
           return [];
@@ -167,6 +208,7 @@ export const BookRepo = {
         chapters: {
           id: string;
           read: boolean;
+          userId: string;
         }[],
       ) => {
         await db
@@ -175,11 +217,12 @@ export const BookRepo = {
             chapters.map((c) => ({
               chapter_id: c.id,
               read: c.read,
+              user_id: c.userId,
               read_at: new Date(),
             })),
           )
           .onConflictDoUpdate({
-            target: UserChapterState.chapter_id,
+            target: [UserChapterState.user_id, UserChapterState.chapter_id],
             set: {
               read: sql`excluded.read`,
               read_at: sql`COALESCE(${UserChapterState.read_at}, excluded.read_at)`,
@@ -187,10 +230,12 @@ export const BookRepo = {
           });
       },
       readProgress: async ({
+        userId,
         chapterId,
         percentage,
         page,
       }: {
+        userId: string;
         chapterId: string;
         percentage: number;
         page: number;
@@ -199,13 +244,14 @@ export const BookRepo = {
         const [updated] = await db
           .insert(UserChapterState)
           .values({
+            user_id: userId,
             chapter_id: chapterId,
             percentage,
             current_page: page,
             read,
           })
           .onConflictDoUpdate({
-            target: UserChapterState.chapter_id,
+            target: [UserChapterState.user_id, UserChapterState.chapter_id],
             set: {
               percentage,
               current_page: page,
@@ -256,7 +302,7 @@ export const BookRepo = {
   },
 
   bookmark: {
-    create: async (bookId: string) => {
+    create: async ({ bookId, userId }: { bookId: string; userId: string }) => {
       const book = await db.query.Book.findFirst({
         where: eq(Book.id, bookId),
       });
@@ -266,11 +312,12 @@ export const BookRepo = {
       await db
         .insert(UserBookState)
         .values({
+          user_id: userId,
           book_id: bookId,
           bookmarked: true,
         })
         .onConflictDoUpdate({
-          target: UserBookState.book_id,
+          target: [UserBookState.user_id, UserBookState.book_id],
           set: {
             bookmarked: true,
           },
@@ -280,7 +327,7 @@ export const BookRepo = {
       await BookRepo.refetch.book(bookId);
       return {};
     },
-    delete: async (bookId: string) => {
+    delete: async ({ bookId, userId }: { bookId: string; userId: string }) => {
       const book = await db.query.Book.findFirst({
         where: eq(Book.id, bookId),
       });
@@ -291,11 +338,12 @@ export const BookRepo = {
       await db
         .insert(UserBookState)
         .values({
+          user_id: userId,
           book_id: bookId,
           bookmarked: false,
         })
         .onConflictDoUpdate({
-          target: UserBookState.book_id,
+          target: [UserBookState.user_id, UserBookState.book_id],
           set: {
             bookmarked: false,
           },
@@ -305,18 +353,24 @@ export const BookRepo = {
   },
 
   userStates: {
-    list: (bookIds: string[]) => {
+    list: ({ userId, bookIds }: { userId: string; bookIds: string[] }) => {
       if (!bookIds.length) {
         return [];
       }
       return db.query.UserBookState.findMany({
-        where: inArray(UserBookState.book_id, bookIds),
+        where: and(
+          eq(UserBookState.user_id, userId),
+          inArray(UserBookState.book_id, bookIds),
+        ),
       });
     },
     get: {
-      byId: async (bookId: string) => {
+      byId: async ({ userId, bookId }: { bookId: string; userId: string }) => {
         return db.query.UserBookState.findFirst({
-          where: eq(UserBookState.book_id, bookId),
+          where: and(
+            eq(UserBookState.book_id, bookId),
+            eq(UserBookState.user_id, userId),
+          ),
         });
       },
     },

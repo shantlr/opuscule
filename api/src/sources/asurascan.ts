@@ -132,6 +132,12 @@ export const sourceAsuraScan: ISource<'asurascan'> = {
           sourceAsuraScan.id,
           sourceBookId,
         );
+        if (!sourceBook) {
+          context.logger.info(
+            `[source-book-details] source book not found: ${sourceBookId}`,
+          );
+          return;
+        }
 
         const session = await context.initFetcherSession();
         const page = await session.go(`/series/${sourceBook?.source_book_key}`);
@@ -254,11 +260,23 @@ export const sourceAsuraScan: ISource<'asurascan'> = {
           }),
         );
 
-        const matches = uniq(
-          page.html.match(
-            /https:\/\/gg.asuracomic.net\/storage\/media\/\d+\/conversions\/[0-9a-zA-Z]+-optimized.webp/g,
-          ),
-        );
+        const res = page.map({
+          type: 'object',
+          fields: {
+            pages: {
+              type: 'map',
+              query: '.w-full.mx-auto.center',
+              item: {
+                url: {
+                  type: 'attr',
+                  query: 'img',
+                  name: 'src',
+                },
+              },
+            },
+          },
+        });
+
         const pages = z
           .string()
           .array()
@@ -268,7 +286,7 @@ export const sourceAsuraScan: ISource<'asurascan'> = {
               url,
             })),
           )
-          .parse(matches);
+          .parse(res.pages.map((p) => p.url));
 
         await fetchPictures([
           {

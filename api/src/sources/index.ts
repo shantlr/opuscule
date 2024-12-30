@@ -1,5 +1,5 @@
 import { keyBy } from 'lodash';
-import { createContext } from 'sources/lib/create-context.js';
+import { createContext } from 'sources/lib/create-context/index.js';
 
 import { sourceAsuraScan } from './asurascan.js';
 import { sourceFlamescans } from './flamescans.js';
@@ -17,7 +17,11 @@ export const SourcesByID = keyBy(Sources, (s) => s.id);
 export const fetchSourceLatests = async (source: ISource) => {
   const context = createContext({ sourceId: source.id });
 
-  await source.entries.fetchLatests(context);
+  try {
+    await source.entries.fetchLatests(context);
+  } finally {
+    await context.close();
+  }
 };
 
 export const fetchBookDetails = async (
@@ -26,7 +30,11 @@ export const fetchBookDetails = async (
 ) => {
   const context = createContext({ sourceId: source.id });
 
-  await source.entries.book.details({ sourceBookId }, context);
+  try {
+    await source.entries.book.details({ sourceBookId }, context);
+  } finally {
+    await context.close();
+  }
 };
 
 export const fetchBookChapter = async (
@@ -42,5 +50,12 @@ export const fetchBookChapter = async (
     skipCache: opt?.force,
   });
 
-  await source.entries.book.fetchChapter({ sourceBookId, chapterId }, context);
+  try {
+    await source.entries.book.fetchChapter(
+      { sourceBookId, chapterId },
+      context,
+    );
+  } finally {
+    await context.close();
+  }
 };

@@ -1,36 +1,24 @@
 import { config } from 'config';
 import { endpointConf, EndpointHandler } from 'proute';
-import { object, nullable, string } from 'valibot';
+import { object, nullable } from 'valibot';
 
-import { ROUTES } from '../base-conf';
+import { ROUTES } from '../proute.generated.routes';
 
-const conf = endpointConf({
-  route: ROUTES.get['/auth/config'],
+const conf = endpointConf(ROUTES.get['/auth/config'], {
   responses: {
     200: object({
-      google: nullable(
-        object({
-          client_id: string(),
-          redirect_url: string(),
-        }),
-      ),
+      google: nullable(object({})),
     }),
   },
 });
 
-const handler: EndpointHandler<typeof conf> = async (): ReturnType<
+const handler: EndpointHandler<typeof conf> = async ({}): ReturnType<
   EndpointHandler<typeof conf>
 > => {
-  const googleClientId = config.get('google.oauth.clientId');
   return {
     status: 200,
     data: {
-      google: googleClientId
-        ? {
-            client_id: googleClientId,
-            redirect_url: config.get('google.oauth.redirectUrl'),
-          }
-        : null,
+      google: config.get('google.oauth.clientId') ? {} : null,
     },
   };
 };

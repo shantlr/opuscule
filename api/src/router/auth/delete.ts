@@ -5,10 +5,9 @@ import { authenticated } from 'middlewares';
 import { endpointConf, EndpointHandler } from 'proute';
 import { object } from 'valibot';
 
-import { ROUTES } from '../base-conf';
+import { ROUTES } from '../proute.generated.routes';
 
-const conf = endpointConf({
-  route: ROUTES.delete['/auth'],
+const conf = endpointConf(ROUTES.delete['/auth'], {
   responses: {
     200: object({}),
   },

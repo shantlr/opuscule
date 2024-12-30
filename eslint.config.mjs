@@ -18,6 +18,9 @@ export default [
   {
     ignores: ['node_modules', 'dist', 'build'],
   },
+  {
+    ignores: ['api/src/router/index.ts'],
+  },
   { languageOptions: { globals: globals.browser } },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,

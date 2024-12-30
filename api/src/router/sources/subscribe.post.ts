@@ -1,13 +1,13 @@
 import { logger } from 'config/logger';
 import { SourceRepo } from 'data/repo/source';
+import { authenticated } from 'middlewares';
 import { endpointConf, EndpointHandler } from 'proute';
 import { Sources } from 'sources';
-import { object, array, string, literal, union } from 'valibot';
+import { object, array, string, literal, union, picklist } from 'valibot';
 
-import { ROUTES } from '../base-conf';
+import { ROUTES } from '../proute.generated.routes';
 
-const conf = endpointConf({
-  route: ROUTES.post['/sources/subscribe'],
+const conf = endpointConf(ROUTES.post['/sources/subscribe'], {
   description: 'Subscribe to multiple sources',
   body: object({
     source_ids: array(string()),
@@ -16,14 +16,15 @@ const conf = endpointConf({
     200: object({}),
     400: object({
       success: literal(false),
-      error: union([literal('UNKNOWN_SOURCE')]),
+      error: picklist(['UNKNOWN_SOURCE']),
     }),
     500: null,
   },
-});
+}).middleware(authenticated);
 
 const handler: EndpointHandler<typeof conf> = async ({
   body: { source_ids },
+  user,
 }): ReturnType<EndpointHandler<typeof conf>> => {
   try {
     if (source_ids.some((id) => !Sources.find((s) => s.id === id))) {
@@ -36,7 +37,10 @@ const handler: EndpointHandler<typeof conf> = async ({
       };
     }
 
-    await SourceRepo.updates.subscribeMany(source_ids);
+    await SourceRepo.updates.subscribeMany({
+      sourceIds: source_ids,
+      userId: user.id,
+    });
 
     return {
       status: 200,
