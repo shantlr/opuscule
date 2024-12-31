@@ -67,6 +67,11 @@ export const BookCard = ({
             )}
             Chapter {book.latests_chapters[0]?.chapter_id}
           </Text>
+          <Text className="text-sm text-light">
+            {book.last_chapter_updated_at
+              ? dayjs(book.last_chapter_updated_at).fromNow()
+              : null}
+          </Text>
         </View>
       </LinkPressable>
     );

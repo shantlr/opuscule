@@ -1,7 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
 import { Link } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ScrollView,
   Text,
@@ -10,11 +9,10 @@ import {
   View,
 } from 'react-native';
 import Animated, {
-  interpolate,
+  useAnimatedRef,
   useAnimatedStyle,
-  useSharedValue,
+  useScrollViewOffset,
 } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ApiBookDetail } from '@/common/api/types';
 import { dayjs } from '@/common/dayjs';
@@ -24,10 +22,7 @@ import { Button } from '@/common/ui/button';
 import { Checkbox } from '@/common/ui/checkbox';
 import { Image } from '@/common/ui/image';
 import { BackNav } from '@/common/ui/layouts/back-nav';
-import {
-  HEADER_HEIGHT,
-  MobileScreenHeader,
-} from '@/common/ui/layouts/mobile-screen-header';
+import { MobileScreenHeader } from '@/common/ui/layouts/mobile-screen-header';
 import {
   useBook,
   useBookmarkBook,
@@ -163,153 +158,60 @@ function MobileScreen({ data }: { data: ReturnType<typeof useBook>['data'] }) {
   const { mutate: bookmark } = useBookmarkBook({});
   const { mutate: unbookmark } = useUnbookmarkBook({});
 
-  const safeArea = useSafeAreaInsets();
-  const cardScrollView = useRef<ScrollView>(null);
-  const contentScrollView = useRef<ScrollView>(null);
-
   const dimensions = useWindowDimensions();
 
-  const BG_HEIGHT = dimensions.height * 0.5;
+  // const BG_HEIGHT = dimensions.height * 0.5;
+  const HEADER_HEIGHT = 400;
 
-  const [cardBottomReached, setCardBottomReached] = useState(false);
-  const [contentTopReached, setContentTopReached] = useState(true);
+  const scrollRef = useAnimatedRef<Animated.ScrollView>();
+  const scrollOffset = useScrollViewOffset(scrollRef);
 
-  const SCROLL_MARGIN_TOP = HEADER_HEIGHT + safeArea.top + 10;
-
-  const titleTransition = useSharedValue(0);
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(titleTransition.value, [0, 24], [0, 1]),
-  }));
+  const cardHeaderStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          translateY: Math.max(40, 340 - scrollOffset.value),
+        },
+      ],
+    };
+  });
 
   return (
-    <View className="h-full w-full relative">
-      <View
-        className={clsx(
-          'absolute w-full flex justify-center items-center overflow-hidden',
-        )}
-      >
+    <View className="h-full relative">
+      <Animated.View className="absolute w-full top-0 left-0">
         <Image
           cachePolicy="disk"
           source={data?.book?.cover_url}
           style={{
-            height: BG_HEIGHT,
+            height: HEADER_HEIGHT,
             width: '100%',
           }}
         />
-        {/* Background */}
-        <View className="absolute top-0 left-0 h-full w-full bg-gradient-to-b to-40% from-black/80 to-black/20"></View>
-
-        {/* Header */}
-        <Animated.View
-          className="absolute w-full left-0 flex justify-center items-center"
-          style={[
-            {
-              height: HEADER_HEIGHT,
-              top: safeArea.top,
-            },
-            animatedStyle,
-          ]}
-        >
-          <Text className="text-white line-clamp-1 text-lg">
-            {data?.book?.title}
-          </Text>
-        </Animated.View>
-        <View
-          className="w-full absolute flex flex-row justify-between items-center"
-          style={{
-            top: safeArea.top,
-            height: HEADER_HEIGHT,
-            left: 0,
-          }}
-        >
-          <BackNav href="/" className="text-white" />
-          <TouchableOpacity
-            onPress={() => {
-              if (!data?.book) {
-                return;
-              }
-
-              if (data.book.bookmarked) {
-                unbookmark({ id: data.book.id });
-              } else {
-                bookmark({ id: data.book.id });
-              }
-            }}
-          >
-            <Ionicons
-              size={24}
-              name={data?.book?.bookmarked ? 'bookmark' : 'bookmark-outline'}
-              className="text-white pr-2"
-            />
-          </TouchableOpacity>
-        </View>
-
-        <View className="absolute bottom-[150px] right-8">
-          <Button>START</Button>
-        </View>
+      </Animated.View>
+      <View className="absolute top-0 left-0">
+        <BackNav href="/" className="text-white" />
       </View>
-
-      {/* Bottom sheet */}
-      <ScrollView
-        ref={contentScrollView}
-        className="relative"
-        style={{ marginTop: SCROLL_MARGIN_TOP }}
-        scrollEventThrottle={16}
-        scrollEnabled={!cardBottomReached || contentTopReached}
-        bounces={false}
-        onScroll={(event) => {
-          if (
-            event.nativeEvent.contentOffset.y +
-              event.nativeEvent.layoutMeasurement.height >=
-            event.nativeEvent.contentSize.height - 1
-          ) {
-            setCardBottomReached(true);
-          } else {
-            setCardBottomReached(false);
-          }
-        }}
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={{ height: BG_HEIGHT * 0.75 - SCROLL_MARGIN_TOP }} />
-        <View
-          className="p-8 pb-0 px-4 rounded-t-[40px] bg-mainbg shadow-xl"
-          style={{
-            height: dimensions.height - SCROLL_MARGIN_TOP,
-          }}
-        >
-          <ScrollView
-            ref={cardScrollView}
-            scrollEnabled={cardBottomReached}
-            scrollEventThrottle={1}
-            className="rounded-t-xl pb-8"
-            onScroll={(event) => {
-              const y = event.nativeEvent.contentOffset.y;
-              if (y <= 24) {
-                titleTransition.value = y;
-              } else {
-                titleTransition.value = 24;
-              }
-
-              if (event.nativeEvent.contentOffset.y <= 0) {
-                setContentTopReached(true);
-              } else {
-                setContentTopReached(false);
-              }
-            }}
-          >
-            <Text className="px-2 text-lg font-bold mb-4 text-center">
-              {data?.book?.title}
-            </Text>
-            <ChapterList book={data?.book} />
-            <View
-              style={{
-                height: safeArea.bottom,
-              }}
-            />
-          </ScrollView>
+      <Animated.View className="" style={[cardHeaderStyle]}>
+        <View className="bg-mainbg rounded-t-3xl pt-2 pb-2">
+          <Text className="text-lg text-center">{data?.book?.title}</Text>
         </View>
-      </ScrollView>
+      </Animated.View>
+      <Animated.ScrollView
+        style={{
+          marginTop: 80,
+          height: dimensions.height - 80,
+        }}
+        className="absolute w-full"
+        ref={scrollRef}
+        scrollEventThrottle={16}
+      >
+        <View className="h-[300px] w-full"></View>
+        <View className="h-full bg-mainbg pt-4">
+          <View className="px-4">
+            <ChapterList book={data?.book} />
+          </View>
+        </View>
+      </Animated.ScrollView>
     </View>
   );
 }

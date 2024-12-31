@@ -20,6 +20,7 @@ export const BooksGrid = ({
       className="py-8 w-full flex flex-row flex-wrap justify-center gap-2 md:gap-4"
     >
       {typeof width === 'number' &&
+        width > 0 &&
         books?.map((book) => (
           <BookCard
             key={book.id}

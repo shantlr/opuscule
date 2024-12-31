@@ -11,7 +11,13 @@ import { SourceRepo } from 'data/repo/source';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import express from 'express';
 import { addLogger } from 'pino-grove/express';
-import { Sources } from 'sources';
+import {
+  fetchBookChapter,
+  fetchBookDetails,
+  fetchSourceLatests,
+  Sources,
+} from 'sources';
+import { sourceAsuraScan } from 'sources/asurascan';
 
 import { db } from './data/db';
 import { setupCronJobs } from './lib/cron-jobs';
@@ -58,6 +64,15 @@ const main = async () => {
   await initSources();
 
   await checkGlobalSettings();
+
+  // await fetchSourceLatests(sourceAsuraScan);
+  // try {
+  //   // await fetchBookDetails(sourceAsuraScan, 'boundless-necromancer');
+  //   await fetchBookChapter(sourceAsuraScan, 'boundless-necromancer', '115');
+  // } catch (err) {
+  //   //
+  // }
+
   await setupCronJobs();
 
   const app = express();

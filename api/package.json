@@ -12,6 +12,7 @@
     "migrate:make": "drizzle-kit generate"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.1",
     "@shantry/vite-node-preset": "^0.0.6",
     "@types/better-sqlite3": "^7.6.11",
     "@types/cheerio": "^0.22.35",

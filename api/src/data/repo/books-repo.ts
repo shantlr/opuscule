@@ -12,6 +12,7 @@ import {
   isNull,
   gt,
   sql,
+  lt,
 } from 'drizzle-orm';
 import { fetchBook } from 'lib/cron-jobs/fetch-book';
 import { keyBy } from 'lodash';
@@ -200,6 +201,36 @@ export const BookRepo = {
           with: {
             userState: true,
           },
+        });
+      },
+      nextByRank: async ({
+        bookId,
+        rank,
+      }: {
+        bookId: string;
+        rank: number;
+      }) => {
+        return db.query.Chapter.findFirst({
+          where: and(
+            eq(Chapter.source_book_id, bookId),
+            gt(Chapter.chapter_rank, rank),
+          ),
+          orderBy: [Chapter.chapter_rank],
+        });
+      },
+      prevByRank: async ({
+        bookId,
+        rank,
+      }: {
+        bookId: string;
+        rank: number;
+      }) => {
+        return db.query.Chapter.findFirst({
+          where: and(
+            eq(Chapter.source_book_id, bookId),
+            lt(Chapter.chapter_rank, rank),
+          ),
+          orderBy: [desc(Chapter.chapter_rank)],
         });
       },
     },
