@@ -16,7 +16,7 @@ export default [
     ],
   },
   {
-    ignores: ['node_modules', 'dist', 'build'],
+    ignores: ['node_modules', 'api/dist', 'app/dist'],
   },
   {
     ignores: ['api/src/router/index.ts'],

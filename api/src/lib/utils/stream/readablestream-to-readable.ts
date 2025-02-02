@@ -1,4 +1,5 @@
-import { PassThrough, Readable, once, TransformOptions } from 'stream';
+import { once } from 'node:events';
+import { PassThrough, Readable, TransformOptions } from 'node:stream';
 
 // from https://gist.github.com/timoxley/61bdb55fe0cab34217b724326a1ab829
 

@@ -11,20 +11,12 @@ import { SourceRepo } from 'data/repo/source';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import express from 'express';
 import { addLogger } from 'pino-grove/express';
-import {
-  fetchBookChapter,
-  fetchBookDetails,
-  fetchSourceLatests,
-  Sources,
-} from 'sources';
-import { sourceAsuraScan } from 'sources/asurascan';
+import { Sources } from 'sources';
 
 import { db } from './data/db';
 import { setupCronJobs } from './lib/cron-jobs';
 import { checkGlobalSettings } from './lib/global-settings';
 import { router } from './router/proute.generated.router';
-
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 const assertConfig = (log = defaultLogger) => {
   if (!config.get('chapter.page.s3KeyRand.seed')) {

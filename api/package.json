@@ -7,13 +7,17 @@
   },
   "scripts": {
     "dev": "nodemon --exec vite-node ./src/index.ts | vite-node ./log-pretty.ts",
+    "cli:dev": "vite-node ./src/entries/cli/index.ts",
+    "debugger": "nodemon --exec vite-node ./src/entries/debugger/index.ts | vite-node ./log-pretty.ts",
+    "build": "vite build",
+    "start": "node dist/index.es.js",
     "lint": "eslint",
     "ts-check": "tsc --noEmit",
     "migrate:make": "drizzle-kit generate"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
-    "@shantry/vite-node-preset": "^0.0.6",
+    "@shantry/vite-node-preset": "^0.0.8",
     "@types/better-sqlite3": "^7.6.11",
     "@types/cheerio": "^0.22.35",
     "@types/convict": "^6.1.6",
@@ -56,6 +60,7 @@
     "playwright-extra": "^4.3.6",
     "proute": "^0.0.5",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "sade": "^1.8.1",
     "sharp": "^0.33.5",
     "tough-cookie": "^5.0.0",
     "valibot": "^1.0.0-beta.9",

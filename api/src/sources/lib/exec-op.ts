@@ -62,8 +62,13 @@ export const execOperations = <O extends Op>(
       return text as OpOutput<O>;
     }
     case 'exist': {
-      const res = execOperations($, op.value, { context });
-      return !!res as OpOutput<O>;
+      const elem = getElem($, op.query, context);
+      if (op.value) {
+        const res = execOperations($, op.value, { context });
+        return !!res as OpOutput<O>;
+      }
+
+      return (elem.length > 0) as OpOutput<O>;
     }
     case 'attr': {
       const elem = getElem($, op.query, context);

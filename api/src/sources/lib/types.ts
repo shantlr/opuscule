@@ -24,7 +24,8 @@ export type OpText = {
 };
 export type OpExist = {
   type: 'exist';
-  value: Op;
+  query?: Query;
+  value?: Op;
 };
 export type OpAttr = {
   type: 'attr';

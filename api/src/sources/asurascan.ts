@@ -4,7 +4,7 @@ import { SourceRepo } from 'data/repo/source';
 import { joinUrl } from 'lib/utils/join-url';
 import { parseFullFormattedDate } from 'lib/utils/parse-formatted-date';
 import { parseFormattedRelativeDate } from 'lib/utils/parse-relative-date';
-import { uniq, uniqBy } from 'lodash';
+import { uniqBy } from 'lodash';
 import { fetchPictures } from 'sources/lib/fetch-pictures';
 import { z } from 'zod';
 
@@ -63,6 +63,15 @@ export const sourceAsuraScan: ISource<'asurascan'> = {
                 type: 'text',
                 query: 'p.items-end',
               },
+              isLocked: {
+                type: 'exist',
+                query: {
+                  selector: 'svg.lucide-timer',
+                },
+                // value: {
+                //   type: ''
+                // }
+              },
               url: {
                 type: 'attr',
                 name: 'href',
@@ -103,16 +112,18 @@ export const sourceAsuraScan: ISource<'asurascan'> = {
             ...item,
             id: item.url.match(/\/series\/(?<id>[^/]+)/)?.groups?.id as string,
             key: item.url.match(/\/series\/(?<id>[^/]+)/)?.groups?.id as string,
-            chapters: item.chapters.map((chapt) => ({
-              url: chapt.url,
-              id: chapt.url.match(/\/chapter\/(?<chapter>[^/]+)/)?.groups
-                ?.chapter as string,
-              rank: parseFloat(
-                chapt.url.match(/\/chapter\/(?<chapter>[^/]+)/)?.groups
+            chapters: item.chapters
+              .filter((c) => !c.isLocked)
+              .map((chapt) => ({
+                url: chapt.url,
+                id: chapt.url.match(/\/chapter\/(?<chapter>[^/]+)/)?.groups
                   ?.chapter as string,
-              ),
-              publishedAt: chapt.publishedAt,
-            })),
+                rank: parseFloat(
+                  chapt.url.match(/\/chapter\/(?<chapter>[^/]+)/)?.groups
+                    ?.chapter as string,
+                ),
+                publishedAt: chapt.publishedAt,
+              })),
           })),
         );
 

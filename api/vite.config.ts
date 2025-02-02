@@ -6,6 +6,9 @@ export default defineConfig({
   plugins: [
     viteNodePreset({
       entry: './src/index.ts',
+      externals: {
+        exclude: ['lodash'],
+      },
     }),
     prouteVitePlugin({
       inputPath: './src/router',

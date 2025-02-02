@@ -61,8 +61,8 @@ export const fetchLatests = async ({
         Date.now() + 2 * (retryCount + 1) * 30 * 60 * 1000,
       );
       log.info(
-        `source '${id}' failed (next_retry_at: ${nextRetryAt.toISOString()}):`,
         err,
+        `source '${id}' failed (next_retry_at: ${nextRetryAt.toISOString()}):`,
       );
       sourceStates[id] = {
         minRetryAt: nextRetryAt,
