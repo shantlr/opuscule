@@ -1,0 +1,6 @@
+{
+  "$schema": "https://raw.githubusercontent.com/shantlr/dogen/refs/heads/main/schemas/dogen-config.schema.json",
+  "build": {
+    "src_detect_additional_files": ["features", "utils", "common", "assets"]
+  }
+}
