@@ -2,13 +2,23 @@ import { AntDesign } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { findLastIndex } from 'lodash';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { Pressable, View } from 'react-native';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  interpolate,
+  useAnimatedRef,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
 
 import { useTypedLocalSearchParams } from '@/common/navigation/use-local-search-params';
 import { Button } from '@/common/ui/button';
 import { Image } from '@/common/ui/image';
-import { MobileScreenHeader } from '@/common/ui/layouts/mobile-screen-header';
+import {
+  HEADER_HEIGHT,
+  MobileScreenHeader,
+} from '@/common/ui/layouts/mobile-screen-header';
 import { useBookChapter, useSaveReadProgress } from '@/features/books/use-book';
 
 const MAX_WIDTH = 650;
@@ -43,7 +53,8 @@ export default function ChapterScreen() {
 
   const [progressInited, setProgressInited] = useState(false);
 
-  const scrollViewRef = useRef<ScrollView | null>(null);
+  // const scrollViewRef = useRef<ScrollView | null>(null);
+  const scrollViewRef = useAnimatedRef<Animated.ScrollView>();
   const [scrollHeight, setScrollHeight] = useState({
     height: 0,
     contentHeight: 0,
@@ -121,6 +132,14 @@ export default function ChapterScreen() {
 
   const [showOverlay, setShowOverlay] = useState(false);
 
+  const lastOffsetValue = useRef(0);
+  const headerOffset = useSharedValue(45);
+
+  const style = useAnimatedStyle(() => ({
+    height: headerOffset.value,
+    opacity: interpolate(headerOffset.value, [0, HEADER_HEIGHT], [0, 1]),
+  }));
+
   return (
     <View
       className="h-full w-full"
@@ -128,19 +147,22 @@ export default function ChapterScreen() {
         setWidth(event.nativeEvent.layout.width);
       }}
     >
-      <MobileScreenHeader
-        back={{
-          pathname: '/book/[bookId]',
-          params: { bookId },
-        }}
-        title={
-          isLoading ? 'Loading...' : `Chapter ${data?.chapter?.chapter_id}`
-        }
-      />
-      <ScrollView
+      <Animated.View style={style}>
+        <MobileScreenHeader
+          back={{
+            pathname: '/book/[bookId]',
+            params: { bookId },
+          }}
+          title={
+            isLoading ? 'Loading...' : `Chapter ${data?.chapter?.chapter_id}`
+          }
+        />
+      </Animated.View>
+      <Animated.ScrollView
         ref={scrollViewRef}
         className="w-full"
-        scrollEventThrottle={500}
+        // scrollEventThrottle={500}
+        scrollEventThrottle={16}
         onLayout={(event) => {
           const height = event.nativeEvent?.layout?.height;
           setScrollHeight((v) => ({
@@ -155,6 +177,15 @@ export default function ChapterScreen() {
           }));
         }}
         onScroll={(event) => {
+          const deltaY =
+            event.nativeEvent.contentOffset.y - (lastOffsetValue.current ?? 0);
+          lastOffsetValue.current = event.nativeEvent.contentOffset.y;
+
+          headerOffset.value = Math.max(
+            Math.min(headerOffset.value - deltaY, HEADER_HEIGHT),
+            0,
+          );
+
           // NOTE: percent as of the bottom of the page
           const currentOffset =
             event.nativeEvent.contentOffset.y +
@@ -194,7 +225,7 @@ export default function ChapterScreen() {
             </View>
           ))}
         </Pressable>
-      </ScrollView>
+      </Animated.ScrollView>
       {showOverlay && (
         <Animated.View entering={FadeIn} exiting={FadeOut}>
           <View className="bg-gray-600 w-full flex flex-row overflow-hidden flex-nowrap">
