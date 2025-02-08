@@ -26,32 +26,41 @@ export const Button = forwardRef<
     size?: keyof typeof sizes;
     className?: string;
     circle?: boolean;
+    disabled?: boolean;
   } & Pick<ComponentProps<typeof Pressable>, 'onPress'>
->(({ loading, children, variant, size, onPress, className, circle }, ref) => {
-  return (
-    <Pressable
-      ref={ref}
-      role="button"
-      onPress={(event) => {
-        if (loading) {
-          return;
-        }
+>(
+  (
+    { loading, children, variant, size, onPress, className, circle, disabled },
+    ref,
+  ) => {
+    return (
+      <Pressable
+        ref={ref}
+        role="button"
+        aria-disabled={!!disabled}
+        aria-busy={!!loading}
+        onPress={(event) => {
+          if (loading || disabled) {
+            return;
+          }
 
-        onPress?.(event);
-      }}
-      className={clsx(
-        'px-2 flex items-center justify-center  transition-all',
-        variants[variant ?? 'default'],
-        sizes[size ?? 'default'],
-        className,
-        circle ? 'rounded-full' : 'rounded',
-      )}
-    >
-      {loading && <ActivityIndicator />}
-      <View>
-        {typeof children === 'string' ? <Text>{children}</Text> : children}
-      </View>
-    </Pressable>
-  );
-});
+          onPress?.(event);
+        }}
+        className={clsx(
+          'px-2 flex items-center justify-center  transition-all',
+          variants[variant ?? 'default'],
+          sizes[size ?? 'default'],
+          className,
+          circle ? 'rounded-full' : 'rounded',
+          disabled && `cursor-not-allowed opacity-50`,
+        )}
+      >
+        {loading && <ActivityIndicator />}
+        <View>
+          {typeof children === 'string' ? <Text>{children}</Text> : children}
+        </View>
+      </Pressable>
+    );
+  },
+);
 Button.displayName = 'Button';

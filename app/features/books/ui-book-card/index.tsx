@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 
 import { ApiBookSummary } from '@/common/api/types';
 import { dayjs } from '@/common/dayjs';
@@ -16,8 +16,10 @@ export const BookCard = ({
   book: ApiBookSummary;
   size?: 'small' | 'default';
 }) => {
-  const { mutate: bookmark } = useBookmarkBook({});
-  const { mutate: unbookmark } = useUnbookmarkBook({});
+  const { mutate: bookmark, isLoading: isBookmarking } = useBookmarkBook({});
+  const { mutate: unbookmark, isLoading: isUnbookmarking } = useUnbookmarkBook(
+    {},
+  );
 
   if (size === 'small') {
     return (
@@ -94,6 +96,7 @@ export const BookCard = ({
         'web:hover:scale-105',
       )}
     >
+      {/* Left part */}
       <View className="shrink grow">
         <Text className="font-bold pl-2 pt-2 mb-2 line-clamp-2">
           {!!book.bookmarked && (
@@ -125,6 +128,8 @@ export const BookCard = ({
           ))}
         </View>
       </View>
+
+      {/* Right part */}
       <View>
         <View className="shrink-0 relative rounded-xl overflow-hidden">
           <Image
@@ -135,6 +140,7 @@ export const BookCard = ({
               height: 230,
             }}
           />
+          {/* Bookmark */}
           <TouchableOpacity
             className="absolute top-2 right-2 rounded-xl shadow-md shadow-accent p-1 bg-black/50"
             onPress={(event) => {
@@ -147,11 +153,15 @@ export const BookCard = ({
               }
             }}
           >
-            <Ionicons
-              size={24}
-              name={book?.bookmarked ? 'bookmark' : 'bookmark-outline'}
-              className="text-white"
-            />
+            {isBookmarking || isUnbookmarking ? (
+              <ActivityIndicator />
+            ) : (
+              <Ionicons
+                size={24}
+                name={book?.bookmarked ? 'bookmark' : 'bookmark-outline'}
+                className="text-white"
+              />
+            )}
           </TouchableOpacity>
         </View>
       </View>

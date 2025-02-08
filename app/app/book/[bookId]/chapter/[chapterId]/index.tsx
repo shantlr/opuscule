@@ -1,8 +1,12 @@
+import { AntDesign } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { findLastIndex } from 'lodash';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { useTypedLocalSearchParams } from '@/common/navigation/use-local-search-params';
+import { Button } from '@/common/ui/button';
 import { Image } from '@/common/ui/image';
 import { MobileScreenHeader } from '@/common/ui/layouts/mobile-screen-header';
 import { useBookChapter, useSaveReadProgress } from '@/features/books/use-book';
@@ -20,6 +24,7 @@ export default function ChapterScreen() {
     },
   });
   const { mutate: saveProgress } = useSaveReadProgress();
+  const { replace } = useRouter();
 
   const [width, setWidth] = useState<number | null>(null);
 
@@ -114,6 +119,8 @@ export default function ChapterScreen() {
     return () => clearTimeout(handle);
   }, [readProgress.page, readProgress.percentage]);
 
+  const [showOverlay, setShowOverlay] = useState(false);
+
   return (
     <View
       className="h-full w-full"
@@ -167,20 +174,68 @@ export default function ChapterScreen() {
           });
         }}
       >
-        {data?.chapter?.pages?.map((page, index) => (
-          <View key={index}>
-            <Image
-              style={{
-                height:
-                  page.height * (Math.min(width ?? 0, MAX_WIDTH) / page.width),
-                width: '100%',
-              }}
-              contentFit="contain"
-              source={page.url}
-            />
-          </View>
-        ))}
+        <Pressable
+          onPress={() => {
+            setShowOverlay((v) => !v);
+          }}
+        >
+          {data?.chapter?.pages?.map((page, index) => (
+            <View key={index}>
+              <Image
+                style={{
+                  height:
+                    page.height *
+                    (Math.min(width ?? 0, MAX_WIDTH) / page.width),
+                  width: '100%',
+                }}
+                contentFit="contain"
+                source={page.url}
+              />
+            </View>
+          ))}
+        </Pressable>
       </ScrollView>
+      {showOverlay && (
+        <Animated.View entering={FadeIn} exiting={FadeOut}>
+          <View className="bg-gray-600 w-full flex flex-row overflow-hidden flex-nowrap">
+            <View className="w-full shrink grow"></View>
+            <View className="shrink-0 flex flex-row p-2 gap-4">
+              <Button
+                disabled={!data?.previous_chapter_id}
+                onPress={() => {
+                  if (data?.previous_chapter_id) {
+                    replace({
+                      pathname: '/book/[bookId]/chapter/[chapterId]',
+                      params: {
+                        bookId,
+                        chapterId: data.previous_chapter_id,
+                      },
+                    });
+                  }
+                }}
+              >
+                <AntDesign name="left" />
+              </Button>
+              <Button
+                disabled={!data?.next_chapter_id}
+                onPress={() => {
+                  if (data?.next_chapter_id) {
+                    replace({
+                      pathname: '/book/[bookId]/chapter/[chapterId]',
+                      params: {
+                        bookId,
+                        chapterId: data.next_chapter_id,
+                      },
+                    });
+                  }
+                }}
+              >
+                <AntDesign name="right" />
+              </Button>
+            </View>
+          </View>
+        </Animated.View>
+      )}
     </View>
   );
 }

@@ -140,6 +140,8 @@ export const API = {
           `/books/${bookId}/chapter/${chapterId}`,
         result: json<{
           chapter: ApiChapter;
+          next_chapter_id: string | null;
+          previous_chapter_id: string | null;
         }>,
         options: {
           credentials: 'include',
