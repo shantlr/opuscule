@@ -14,6 +14,7 @@ export type ApiBookSummary = {
   id: string;
   title: string;
   description: string;
+  source_ids: string[];
   cover_url: string | null;
   unread_chapters_count: number;
   last_chapter_updated_at: Date | null;

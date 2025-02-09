@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { Link } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ScrollView,
   Text,
@@ -29,6 +29,7 @@ import {
   useUnbookmarkBook,
 } from '@/features/books/use-book';
 import { useUpdateManyChapterReadProgress } from '@/features/chapter/hooks';
+import { useSources } from '@/features/sources/hooks/use-sources';
 
 const ChapterList = ({
   book,
@@ -227,11 +228,22 @@ function MobileScreen({
 
 export default function BookDetailsScreen() {
   const { bookId } = useTypedLocalSearchParams('/book/[bookId]');
+  const { data: sources } = useSources();
   const { data, error } = useBook({
     params: {
       id: bookId,
     },
   });
+
+  const bookSources = useMemo(() => {
+    return (
+      data?.book?.source_ids
+        .map((id) => sources?.find((source) => source.id === id))
+        .filter((v) => v != null) ?? []
+    );
+  }, [data, sources]);
+
+  console.log({ bookSources });
 
   const [mode, setMode] = useState<'mark-read' | 'mark-unread' | null>(null);
   const { mutate: updateManyChapterReadProgress } =
@@ -260,6 +272,7 @@ export default function BookDetailsScreen() {
             </Text>
           </View>
         )}
+
         <View className="w-full mb-8 flex flex-row overflow-hidden">
           <Image
             className="w-[200px] shrink-0 h-[300px] object-contain rounded-2xl bg-cover overflow-hidden mr-4"
@@ -269,6 +282,20 @@ export default function BookDetailsScreen() {
           <View className="w-full shrink">
             <Text>{data?.book?.title}</Text>
             <Text>{data?.book?.description}</Text>
+            <View className="mt-8">
+              {bookSources.map((source) => (
+                <View key={source.id}>
+                  {source?.logo_url ? (
+                    <Image
+                      source={source.logo_url}
+                      className="w-[36px] h-[36px]"
+                    />
+                  ) : (
+                    <View />
+                  )}
+                </View>
+              ))}
+            </View>
           </View>
         </View>
         <View className="flex flex-row w-full overflow-hidden flex-wrap pb-2 gap-1">
@@ -291,6 +318,7 @@ export default function BookDetailsScreen() {
             Mark as unread
           </Button>
         </View>
+
         <ChapterList
           mode={mode}
           book={data?.book}

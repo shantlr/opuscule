@@ -1,14 +1,32 @@
 import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
+import { useMemo } from 'react';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
-import { ApiBookSummary } from '@/common/api/types';
+import { ApiBookSummary, ApiSource } from '@/common/api/types';
 import { dayjs } from '@/common/dayjs';
 import { Image } from '@/common/ui/image';
 import { LinkPressable } from '@/common/ui/link-pressable';
+import { useSources } from '@/features/sources/hooks/use-sources';
 
 import { useBookmarkBook, useUnbookmarkBook } from '../use-book';
+
+const SourceList = ({ sources }: { sources: ApiSource[] }) => {
+  return (
+    <View className="absolute bottom-2 right-2 shadow-md shadow-accent rounded-xl overflow-hidden">
+      {sources.map((source) => (
+        <View key={source.id}>
+          {source.logo_url ? (
+            <Image source={source.logo_url} className="w-[18px] h-[18px]" />
+          ) : (
+            <View />
+          )}
+        </View>
+      ))}
+    </View>
+  );
+};
 
 export const BookCard = ({
   book,
@@ -21,6 +39,17 @@ export const BookCard = ({
   const { mutate: unbookmark, isLoading: isUnbookmarking } = useUnbookmarkBook(
     {},
   );
+  const { data: sources } = useSources();
+
+  const bookSources = useMemo(() => {
+    if (!sources) {
+      return [];
+    }
+
+    return book.source_ids
+      .map((id) => sources.find((source) => source.id === id))
+      .filter((s) => s != null);
+  }, [sources, book]);
 
   if (size === 'small') {
     return (
@@ -57,6 +86,7 @@ export const BookCard = ({
               className="text-white"
             />
           </TouchableOpacity>
+          <SourceList sources={bookSources} />
         </View>
         <View className="h-[40px] mt-2 w-full">
           <Text className="line-clamp-2">{book.title}</Text>
@@ -167,6 +197,7 @@ export const BookCard = ({
               />
             )}
           </TouchableOpacity>
+          <SourceList sources={bookSources} />
         </Animated.View>
       </View>
     </LinkPressable>

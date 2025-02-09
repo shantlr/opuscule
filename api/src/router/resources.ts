@@ -1,6 +1,6 @@
 import { BookRepo } from 'data/repo/books-repo';
 import { formatPublicS3Url } from 'lib/s3';
-import { flatMap, groupBy, keyBy, map, sortBy } from 'lodash';
+import { flatMap, groupBy, keyBy, map, sortBy, uniq } from 'lodash';
 import { combineReturnTypes, createResource, returnType } from 'proute';
 import {
   array,
@@ -79,6 +79,7 @@ export const bookDetail = createResource({
     title: string(),
     description: nullable(string()),
     cover_url: nullable(string()),
+    source_ids: array(string()),
     created_at: nullable(date()),
 
     chapters: array(
@@ -101,6 +102,7 @@ export const bookDetail = createResource({
       title: book.title,
       description: book.description,
       last_chapter_updated_at: book.last_chapter_updated_at,
+      source_ids: uniq(book.sourceBooks.map((sb) => sb.source_id)),
       cover_url:
         book.cover_s3_key && book.cover_s3_bucket
           ? formatPublicS3Url(book.cover_s3_bucket, book.cover_s3_key)
@@ -136,6 +138,8 @@ const bookSummaryOutput = object({
   cover_url: nullable(string()),
   bookmarked: boolean(),
 
+  source_ids: array(string()),
+
   unread_chapters_count: number(),
   latests_chapters: array(
     object({
@@ -169,6 +173,7 @@ export const bookSummary = createResource({
       id: book.id,
       title: book.title,
       description: book.description,
+      source_ids: uniq(book.sourceBooks.map((sb) => sb.source_id)),
       last_chapter_updated_at: book.last_chapter_updated_at,
       unread_chapters_count: Math.max(
         0,
@@ -227,6 +232,7 @@ export const bookSummaries = createResource({
         id: book.id,
         title: book.title,
         description: book.description,
+        source_ids: uniq(book.sourceBooks.map((sb) => sb.source_id)),
         last_chapter_updated_at: book.last_chapter_updated_at,
         unread_chapters_count: Math.max(
           0,
