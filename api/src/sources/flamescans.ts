@@ -1,5 +1,6 @@
 import { ACCURACY } from 'config/constants';
 import { SourceRepo } from 'data/repo/source';
+import { joinUrl } from 'lib/utils/join-url';
 import { parseFullFormattedDate } from 'lib/utils/parse-formatted-date';
 import { parseFormattedRelativeDate } from 'lib/utils/parse-relative-date';
 import { fetchPictures } from 'sources/lib/fetch-pictures';
@@ -18,8 +19,9 @@ const bookIdSchema = z
 
 const bookKeySchema = bookIdSchema;
 
-const chapterIdRegex = /-chapter?-(?<id>\d+(-\d+)?)+\/?$/;
-const chapterRankRegex = chapterIdRegex;
+// const chapterIdRegex = /-chapter?-(?<id>\d+(-\d+)?)+\/?$/;
+const chapterIdRegex = /series\/[^/]+\/(?<id>[^/]+)/;
+// const chapterRankRegex = chapterIdRegex;
 
 const chapterIdSchema = z
   .string()
@@ -28,13 +30,14 @@ const chapterIdSchema = z
     const m = v.match(chapterIdRegex);
     return m?.groups?.id as string;
   });
-const chapterRankSchema = z
-  .string()
-  .regex(chapterRankRegex)
-  .transform((v) => {
-    const m = v.match(chapterRankRegex);
-    return Number(m?.groups?.id?.replace('-', '.'));
-  });
+const chapterRankSchema = z.string().transform((v) => {
+  const m = v.match(/Chapter (?<rank>\d+(\.\d+)?)/);
+  if (m?.groups?.rank) {
+    return Number(m.groups.rank);
+  }
+
+  throw new Error(`Failed to extract rank from chapter title '${v}'`);
+});
 
 export const sourceFlamescans: ISource<'flamescans'> = {
   id: 'flamescans',
@@ -52,26 +55,29 @@ export const sourceFlamescans: ISource<'flamescans'> = {
       const page = await session.go('/');
 
       const items = page.map({
-        query: '.latest-updates > div',
         type: 'map',
+        query:
+          '.mantine-Grid-root > .mantine-Grid-inner .mantine-Grid-col > div > .mantine-Group-root:not([spacing="xs"])',
         item: {
-          url: {
-            type: 'attr',
-            name: 'href',
-            query: '.bsx > a',
-          },
           coverUrl: {
             type: 'attr',
+            query: 'a > div > img',
             name: 'src',
-            query: '.limit > img',
           },
           title: {
             type: 'text',
-            query: '.info > a',
+            query:
+              '.mantine-Stack-root > a.mantine-Text-root.mantine-focus-auto[data-line-clamp="true"]',
+          },
+          url: {
+            type: 'attr',
+            query: 'a',
+            name: 'href',
           },
           chapters: {
             type: 'map',
-            query: '.chapter-list > a',
+            query:
+              '.mantine-Stack-root > .mantine-Stack-root:nth-child(2) > a.mantine-focus-auto.mantine-Text-root:not([data-size="sm"])',
             item: {
               url: {
                 type: 'attr',
@@ -79,16 +85,20 @@ export const sourceFlamescans: ISource<'flamescans'> = {
               },
               title: {
                 type: 'text',
-                query: '.epxs',
+                query: '.mantine-Group-root > p:nth-child(1)',
               },
               publishedAt: {
                 type: 'text',
-                query: '.epxdate',
+                query: '.mantine-Group-root > p:nth-child(2)',
               },
             },
           },
         },
       });
+
+      if (items.length === 0) {
+        throw new Error('No items found');
+      }
 
       const parsedItems = z
         .preprocess(
@@ -104,7 +114,9 @@ export const sourceFlamescans: ISource<'flamescans'> = {
             id: bookIdSchema,
             key: bookKeySchema,
             url: z.string(),
-            coverUrl: z.string(),
+            coverUrl: z
+              .string()
+              .transform((path) => joinUrl(sourceFlamescans.url, path)),
             title: z.string().trim(),
             chapters: z.preprocess(
               (chapters) => {
@@ -113,7 +125,7 @@ export const sourceFlamescans: ISource<'flamescans'> = {
                   .map((chapter) => ({
                     ...chapter,
                     id: chapter.url,
-                    rank: chapter.url,
+                    rank: chapter.title,
                   }));
               },
               z
@@ -210,7 +222,7 @@ export const sourceFlamescans: ISource<'flamescans'> = {
                   return {
                     ...item,
                     id: item.url,
-                    rank: item.url,
+                    rank: item.title,
                   };
                 },
                 z.object({

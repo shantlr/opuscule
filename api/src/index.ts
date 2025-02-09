@@ -10,8 +10,9 @@ import cors from 'cors';
 import { SourceRepo } from 'data/repo/source';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import express from 'express';
+import { isElapsedFromNow } from 'lib/utils/date';
 import { addLogger } from 'pino-grove/express';
-import { Sources } from 'sources';
+import { fetchSourceIcon, Sources } from 'sources';
 
 import { db } from './data/db';
 import { setupCronJobs } from './lib/cron-jobs';
@@ -36,8 +37,24 @@ const assertConfig = (log = defaultLogger) => {
   }
 };
 
-const initSources = async () => {
+const initSources = async (logger = defaultLogger) => {
   await SourceRepo.ensureCreateds(Sources.map((s) => s.id));
+
+  const sources = await SourceRepo.get.listAll();
+  for (const source of sources) {
+    try {
+      if (!source.icon_s3_key || !source.icon_s3_bucket) {
+        if (!isElapsedFromNow(source.last_fetched_icon_at, { hours: 3 })) {
+          logger.info(`skip fetch source icon (tried recently): ${source.id}`);
+          continue;
+        }
+
+        await fetchSourceIcon(source.id, { logger });
+      }
+    } catch (err) {
+      logger.error(err, `fetch source icon failed: ${source.id} (skipped)`);
+    }
+  }
 };
 
 const main = async () => {
@@ -53,7 +70,7 @@ const main = async () => {
   });
   log.info(`db migrated`);
 
-  await initSources();
+  await initSources(log);
 
   await checkGlobalSettings();
 

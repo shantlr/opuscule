@@ -163,6 +163,12 @@ export const UserChapterState = sqliteTable(
 export const Source = sqliteTable('sources', {
   id: text('id').primaryKey(),
   last_fetched_latests_at: integer('last_fetch', { mode: 'timestamp_ms' }),
+
+  icon_s3_bucket: text('icon_s3_bucket'),
+  icon_s3_key: text('icon_s3_key'),
+  last_fetched_icon_at: integer('last_fetched_icon_at', {
+    mode: 'timestamp_ms',
+  }),
 });
 
 export const UserSource = sqliteTable(

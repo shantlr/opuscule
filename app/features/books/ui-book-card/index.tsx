@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import clsx from 'clsx';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 
 import { ApiBookSummary } from '@/common/api/types';
 import { dayjs } from '@/common/dayjs';
@@ -112,7 +113,7 @@ export const BookCard = ({
               className="p-2 hover:bg-mainbg group rounded transition-all"
               key={chapter.id}
             >
-              <Text className="line-clamp-2">Chapter {chapter.chapter_id}</Text>
+              <Text className="line-clamp-2">Chapter {chapter.rank}</Text>
               <Text
                 className={clsx('line-clamp-2', {
                   'text-light': !book.bookmarked,
@@ -131,7 +132,10 @@ export const BookCard = ({
 
       {/* Right part */}
       <View>
-        <View className="shrink-0 relative rounded-xl overflow-hidden">
+        <Animated.View
+          className="shrink-0 relative rounded-xl overflow-hidden"
+          sharedTransitionTag={`book-cover-${book.id}`}
+        >
           <Image
             source={book.cover_url}
             cachePolicy="disk"
@@ -163,7 +167,7 @@ export const BookCard = ({
               />
             )}
           </TouchableOpacity>
-        </View>
+        </Animated.View>
       </View>
     </LinkPressable>
   );

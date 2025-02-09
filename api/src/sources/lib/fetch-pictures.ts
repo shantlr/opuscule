@@ -11,6 +11,11 @@ import sharp from 'sharp';
 
 export type FetchPictureJob =
   | {
+      type: 'source_icon';
+      source_id: string;
+      logo_url: string;
+    }
+  | {
       type: 'source_book_cover';
       source_id: string;
       source_book_id: string;
@@ -37,6 +42,43 @@ export const fetchPictures = async (
   const log = logger.scope('fetch-pictures');
   for (const job of jobs) {
     switch (job.type) {
+      case 'source_icon': {
+        const res = await fetch(job.logo_url);
+        if (!res.ok) {
+          throw new Error(
+            `Could not fetch source_logo '${job.logo_url}': [${res.status}] ${res.statusText}`,
+          );
+        }
+
+        if (!res.body) {
+          throw new Error(
+            `Could not fetch source_logo '${job.logo_url}': [${res.status}] '${res.statusText}' no body`,
+          );
+        }
+
+        let ext = job.logo_url.split('.').pop();
+        ext = ext ? `.${ext}` : '';
+
+        const key = `${job.source_id}_logo${ext}`;
+        const bucket = config.get('s3.bucket.book_cover');
+        const upload = new Upload({
+          client: s3client,
+          params: {
+            Bucket: bucket,
+            Key: key,
+            Body: res.body,
+          },
+        });
+        await upload.done();
+        await SourceRepo.updates.logo({
+          source_id: job.source_id,
+          s3_key: key,
+          s3_bucket: bucket,
+        });
+        logger.info(`source logo updated for ${job.source_id}`);
+
+        continue;
+      }
       case 'source_book_cover': {
         const res = await fetch(job.img_url);
         if (!res.ok) {
@@ -72,9 +114,7 @@ export const fetchPictures = async (
           coverS3Bucket: bucket,
           coverOriginUrl: job.img_url,
         });
-        log.info(
-          `book cover updated for ${job.source_id}/${job.source_book_id}`,
-        );
+        log.info(`source logo updated for ${job.source_id}`);
         continue;
       }
       case 'chapter_pages': {

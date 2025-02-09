@@ -6,6 +6,7 @@ export type ApiSource = {
   id: string;
   name: string;
   url: string;
+  logo_url: string | null;
   subscribed: boolean;
 };
 

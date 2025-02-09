@@ -12,6 +12,9 @@ import { GlobalSettingsRepo } from './global-settings';
 
 export const SourceRepo = {
   get: {
+    listAll: async () => {
+      return db.query.Source.findMany();
+    },
     sourceToFetchLatests: async (opt?: { force?: boolean }) => {
       const globalSettings = (await GlobalSettingsRepo.get())!;
       const sources = !opt?.force
@@ -75,6 +78,32 @@ export const SourceRepo = {
   },
 
   updates: {
+    logo: async ({
+      source_id,
+      s3_bucket,
+      s3_key,
+    }: {
+      source_id: string;
+      s3_bucket: string;
+      s3_key: string;
+    }) => {
+      await db
+        .update(Source)
+        .set({
+          icon_s3_bucket: s3_bucket,
+          icon_s3_key: s3_key,
+          last_fetched_icon_at: new Date(),
+        })
+        .where(eq(Source.id, source_id));
+    },
+    lastLogoFetchedAt: async (sourceId: string) => {
+      await db
+        .update(Source)
+        .set({
+          last_fetched_icon_at: new Date(),
+        })
+        .where(eq(Source.id, sourceId));
+    },
     subscribeMany: async ({
       userId,
       sourceIds,

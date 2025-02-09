@@ -154,7 +154,13 @@ const ChapterList = ({
   );
 };
 
-function MobileScreen({ data }: { data: ReturnType<typeof useBook>['data'] }) {
+function MobileScreen({
+  bookId,
+  data,
+}: {
+  bookId: string;
+  data: ReturnType<typeof useBook>['data'];
+}) {
   const { mutate: bookmark } = useBookmarkBook({});
   const { mutate: unbookmark } = useUnbookmarkBook({});
 
@@ -178,7 +184,10 @@ function MobileScreen({ data }: { data: ReturnType<typeof useBook>['data'] }) {
 
   return (
     <View className="h-full relative">
-      <Animated.View className="absolute w-full top-0 left-0">
+      <Animated.View
+        className="absolute w-full top-0 left-0"
+        sharedTransitionTag={`book-cover-${bookId}`}
+      >
         <Image
           cachePolicy="disk"
           source={data?.book?.cover_url}
@@ -231,7 +240,7 @@ export default function BookDetailsScreen() {
   const isMobile = useIsMobile();
 
   if (isMobile) {
-    return <MobileScreen data={data} />;
+    return <MobileScreen bookId={bookId} data={data} />;
   }
 
   return (

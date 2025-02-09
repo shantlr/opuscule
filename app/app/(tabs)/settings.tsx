@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 
 import { Button } from '@/common/ui/button';
+import { Image } from '@/common/ui/image';
 import { useLogout } from '@/features/auth/use-auth';
 import {
   useSources,
@@ -31,6 +32,11 @@ export default function Settings() {
       <View role="list" className="flex gap-2">
         {data?.map((source) => (
           <View key={source.id} className="flex flex-row items-center gap-4">
+            {source.logo_url ? (
+              <Image source={source.logo_url} className="w-[48px] h-[48px]" />
+            ) : (
+              <View className="w-[48px] h-[48px]" />
+            )}
             <Text>{source.name}</Text>
             <TouchableOpacity
               role="listitem"
@@ -58,7 +64,7 @@ export default function Settings() {
       </View>
 
       <Button
-        className="mt-2"
+        className="mt-8"
         variant="accent"
         onPress={() => {
           logout({});

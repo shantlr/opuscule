@@ -5,6 +5,16 @@ describe('utils/parse-relative-date', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2021-02-01'));
   });
+  it("should parse 'a'", () => {
+    expect(parseFormattedRelativeDate('a minute ago')).toEqual(
+      new Date('2021-01-31T23:59:00.000Z'),
+    );
+  });
+  it("should parse 'an'", () => {
+    expect(parseFormattedRelativeDate('an hour ago')).toEqual(
+      new Date('2021-01-31T23:00:00.000Z'),
+    );
+  });
   it('should parse minutes', () => {
     expect(parseFormattedRelativeDate('31 minutes')).toEqual(
       new Date('2021-01-31T23:29:00.000Z'),

@@ -1,0 +1,1 @@
+ALTER TABLE `sources` ADD `last_fetched_icon_at` integer;

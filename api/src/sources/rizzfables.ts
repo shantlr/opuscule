@@ -18,10 +18,11 @@ const chapterRank = chapterId.transform((v) => Number(v));
 
 export const sourceRizzfables: ISource<'rizzfables'> = {
   id: 'rizzfables',
-  name: 'Rizzfables',
-  url: 'https://rizzfables.com',
+  name: 'Realm oasis',
+  url: 'https://realmoasis.com',
   formatChapterUrl: ({ sourceBookKey, chapterId }) =>
     `${sourceRizzfables.url}/chapter/${sourceBookKey}-chapter-${chapterId}`,
+
   entries: {
     fetchLatests: async (context) => {
       const session = await context.initFetcherSession({
