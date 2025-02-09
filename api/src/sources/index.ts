@@ -45,11 +45,25 @@ export const fetchSourceIcon = async (
   const fetcher = await context.initFetcherSession({ baseUrl: source.url });
   try {
     const page = await fetcher.go('/');
-    const iconUrl = page.map({
+    let iconUrl = page.map({
       type: 'attr',
       query: 'html > head > link[rel="icon"]',
       name: 'href',
     });
+    if (!iconUrl) {
+      iconUrl = page.map({
+        type: 'attr',
+        query: 'html > head > link[rel="shortcut icon"]',
+        name: 'content',
+      });
+    }
+    if (!iconUrl) {
+      iconUrl = page.map({
+        type: 'attr',
+        query: 'html > head > meta[property="og:image"]',
+        name: 'content',
+      });
+    }
     if (iconUrl) {
       await fetchPictures(
         [
